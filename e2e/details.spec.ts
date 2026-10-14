@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, serveListedPhotos, test } from "./fixtures";
 
 test.describe("park details page", () => {
   test("shows everything known about a park", async ({ page }) => {
@@ -62,6 +62,38 @@ test.describe("park details page", () => {
     await expect(placeholders.first()).toHaveAccessibleName(
       "Old Mill Botanical Garden, photo 1 of 2 (unavailable)",
     );
+  });
+
+  test("shows credited fallback photos when the listing's photos fail", async ({
+    page,
+  }) => {
+    // Prospect Park's listed photo URLs don't exist; it's a real park, so
+    // openly licensed photos from Wikimedia Commons are shown instead.
+    await page.goto("/parks/prospect-park");
+    await expect(
+      page.getByRole("img", { name: /Prospect Park Boathouse/ }),
+    ).toBeVisible();
+    await expect(page.getByText(/photos couldn’t be loaded/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Antigng" })).toHaveAttribute(
+      "href",
+      /commons\.wikimedia\.org/,
+    );
+    await expect(page.getByRole("img", { name: /unavailable/ })).toHaveCount(0);
+  });
+
+  test("never shows fallback photos when the listing's own photos load", async ({
+    page,
+  }) => {
+    await serveListedPhotos(page);
+    await page.goto("/parks/prospect-park");
+    await expect(
+      page.getByRole("img", { name: "Prospect Park, photo 1 of 2" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "Prospect Park, photo 2 of 2" }),
+    ).toBeVisible();
+    await expect(page.getByRole("img", { name: /Boathouse/ })).toHaveCount(0);
+    await expect(page.getByText(/Wikimedia Commons/)).toHaveCount(0);
   });
 
   test("“All parks” returns to the list", async ({ page }) => {

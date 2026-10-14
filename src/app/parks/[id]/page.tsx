@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ParkPhotos } from "@/components/park-photos";
 import { getPark, getParks } from "@/lib/parks/data";
+import { fallbackPhotosFor } from "@/lib/parks/fallback-photos";
 import { amenityLabel } from "@/lib/parks/amenities";
 import { directionsUrl, formatAcreage, formatRating } from "@/lib/parks/format";
 
@@ -38,6 +39,7 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
   const park = getPark(id);
   // Checked before anything renders so unknown ids get a real 404 status.
   if (!park) notFound();
+  const fallbackPhotos = fallbackPhotosFor(park);
 
   return (
     <article className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
@@ -126,8 +128,12 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
           </Section>
 
           <Section title="Photos">
-            {park.images.length > 0 ? (
-              <ParkPhotos parkName={park.name} images={park.images} />
+            {park.images.length > 0 || fallbackPhotos.length > 0 ? (
+              <ParkPhotos
+                parkName={park.name}
+                images={park.images}
+                fallback={fallbackPhotos}
+              />
             ) : (
               <NotListed>No photos available.</NotListed>
             )}

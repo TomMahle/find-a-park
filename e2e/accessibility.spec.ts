@@ -74,9 +74,10 @@ for (const colorScheme of ["light", "dark"] as const) {
 
     test("details page with full data", async ({ page }) => {
       await page.goto("/parks/prospect-park");
-      await expect(page.getByRole("img", { name: /unavailable/ })).toHaveCount(
-        2,
-      );
+      // Wait for the fallback photos (the listing's own photos never load).
+      await expect(
+        page.getByRole("img", { name: /Prospect Park Boathouse/ }),
+      ).toBeVisible();
       await expectNoViolations(page);
     });
 

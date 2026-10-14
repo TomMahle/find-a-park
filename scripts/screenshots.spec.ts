@@ -40,8 +40,9 @@ for (const [device, viewport] of Object.entries(sizes)) {
       test("details", async ({ page }) => {
         await page.goto("/parks/prospect-park");
         await expect(
-          page.getByRole("img", { name: /unavailable/ }),
-        ).toHaveCount(2);
+          page.getByRole("img", { name: /Prospect Park Boathouse/ }),
+        ).toBeVisible();
+        await page.waitForLoadState("networkidle");
         await page.screenshot({
           path: `${OUT}/${device}-${colorScheme}-details.png`,
           fullPage: true,

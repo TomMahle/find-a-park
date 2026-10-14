@@ -7,26 +7,29 @@ const BLANK_TILE = Buffer.from(
 );
 
 export const TILE_URL_PATTERN = "https://tile.openstreetmap.org/**";
+export const LISTED_PHOTO_URL_PATTERN = "https://images.example.com/**";
+const WIKIMEDIA_PHOTO_URL_PATTERN = "https://thumb.wikimedia.org/**";
 
 /**
- * Every test runs offline from third parties: map tiles are stubbed (the OSM
- * tile servers must not receive automated traffic, and tests shouldn't
- * depend on them), and the sample data's placeholder image host is blocked,
- * as it is unreachable in real life too.
+ * Every test runs offline from third parties: map tiles and the Wikimedia
+ * fallback photos are stubbed (neither should receive automated traffic, and
+ * tests shouldn't depend on them), and the sample data's placeholder image
+ * host is blocked, as it is unreachable in real life too.
  *
- * E2E_REAL_TILES=1 loads real tiles instead; only `pnpm screenshots` uses it.
+ * E2E_REAL_MEDIA=1 loads real tiles and photos instead; only
+ * `pnpm screenshots` uses it.
  */
 export const test = base.extend<{ stubExternalRequests: void }>({
   stubExternalRequests: [
     async ({ page }, use) => {
-      if (!process.env.E2E_REAL_TILES) {
-        await page.route(TILE_URL_PATTERN, (route) =>
-          route.fulfill({ contentType: "image/png", body: BLANK_TILE }),
-        );
+      if (!process.env.E2E_REAL_MEDIA) {
+        for (const pattern of [TILE_URL_PATTERN, WIKIMEDIA_PHOTO_URL_PATTERN]) {
+          await page.route(pattern, (route) =>
+            route.fulfill({ contentType: "image/png", body: BLANK_TILE }),
+          );
+        }
       }
-      await page.route("https://images.example.com/**", (route) =>
-        route.abort(),
-      );
+      await page.route(LISTED_PHOTO_URL_PATTERN, (route) => route.abort());
       await use();
     },
     { auto: true },
@@ -34,6 +37,14 @@ export const test = base.extend<{ stubExternalRequests: void }>({
 });
 
 export { expect };
+
+/** Makes the sample data's (normally unreachable) photo URLs load. */
+export async function serveListedPhotos(page: Page) {
+  await page.unroute(LISTED_PHOTO_URL_PATTERN);
+  await page.route(LISTED_PHOTO_URL_PATTERN, (route) =>
+    route.fulfill({ contentType: "image/png", body: BLANK_TILE }),
+  );
+}
 
 /** The list's card for a park, found by its heading. */
 export function parkCard(page: Page, name: string) {

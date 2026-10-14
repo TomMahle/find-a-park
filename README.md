@@ -44,13 +44,18 @@ it); locally it reuses a server already running on that port. CI
 ## What works
 
 - **List** of all parks, alphabetical, with address, rating, hours, size and
-  the first few amenities. Each park name links to its details page.
+  the first few amenities ("+3 more" expands the rest in place). Each park
+  name links to its details page.
 - **Map** (Leaflet + OpenStreetMap tiles) with a marker per park. Selecting a
   marker opens a summary with a link to the park's details, and highlights
   the park in the list. "Show on map" on a list card does the reverse.
 - **Park details** page for each park: description, amenities, photos,
   hours, address, size, rating and a "Get directions" link (Google Maps, no
   key needed). Every page has its own URL and title.
+- **Fallback photos for real parks.** When a park's listed photos are
+  missing or all fail to load, and it's a real park I could verify, openly
+  licensed photos from Wikimedia Commons are shown instead, credited and
+  labeled as such (see [Data](#data)).
 - **Search** by name, street or amenity (e.g. "dog run", "brooklyn
   playground"), filtering the list and the map together.
 - **Phone and desktop layouts.** On phones the list comes first and the map
@@ -102,6 +107,10 @@ Works without the resident's location; the app never asks for it.
   to `getParks`/`getPark` in `src/lib/parks/data.ts`. Swapping in an API means
   changing that module and making those two functions (and their three
   callers) async.
+- **Amenity order.** Restrooms and parking, which nearly every park has, are
+  listed after a park's distinctive amenities, so the first chips on a card
+  say what makes that park worth visiting (`LOW_PRIORITY_AMENITIES` in
+  `src/lib/parks/amenities.ts`). The data's own amenities are unchanged.
 - **Visit info first on the details page.** On phones, hours, address and
   directions come before the description and photos, because that's what
   most people opening a park page need.
@@ -113,15 +122,15 @@ I did not extend the schema.
 
 How missing or invalid values are handled (`src/lib/parks/normalize.ts`):
 
-| Situation                                                                    | What the app does                                                                                                                                       |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Missing/blank/non-text description, hours or address                         | Details page: "Not listed" / "No description available." List card: "Address not listed"; missing hours, size or rating are simply left out of the card |
-| Missing or invalid coordinates (incl. 0,0)                                   | Park stays in the list, which says it isn't on the map; the details page says directions aren't available                                               |
-| Empty or missing amenities/images                                            | "No amenities listed." / "No photos available."                                                                                                         |
-| Amenity with no letters or digits (e.g. `"-"`)                               | Dropped                                                                                                                                                 |
-| Image URL that isn't http(s), or fails to load                               | Dropped / replaced with a "Photo unavailable" tile                                                                                                      |
-| Rating that isn't a number from 0 to 5; acreage that isn't a positive number | Treated as missing                                                                                                                                      |
-| Not an object, no name, no URL-safe id, or a duplicate id                    | Record skipped (it can't be shown or linked to)                                                                                                         |
+| Situation                                                                    | What the app does                                                                                                                                             |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Missing/blank/non-text description, hours or address                         | Details page: "Not listed" / "No description available." List card: "Address not listed"; missing hours, size or rating are simply left out of the card       |
+| Missing or invalid coordinates (incl. 0,0)                                   | Park stays in the list, which says it isn't on the map; the details page says directions aren't available                                                     |
+| Empty or missing amenities/images                                            | "No amenities listed." / "No photos available."                                                                                                               |
+| Amenity with no letters or digits (e.g. `"-"`)                               | Dropped                                                                                                                                                       |
+| Image URL that isn't http(s), or fails to load                               | Dropped / replaced with a "Photo unavailable" tile; if _all_ fail (or none are listed) and the park is a verified real park, credited fallback photos instead |
+| Rating that isn't a number from 0 to 5; acreage that isn't a positive number | Treated as missing                                                                                                                                            |
+| Not an object, no name, no URL-safe id, or a duplicate id                    | Record skipped (it can't be shown or linked to)                                                                                                               |
 
 Every skipped record or ignored value is logged at build time so data
 problems are visible. Issues I noticed in the sample data:
@@ -131,8 +140,23 @@ problems are visible. Issues I noticed in the sample data:
   placeholder. I show it where the data says: the app has no way to know
   the real location, and warning residents based on my guess would be
   inventing details too. It should be fixed at the source.
-- All image URLs point to `images.example.com`, which doesn't exist, so every
-  photo shows the "Photo unavailable" placeholder.
+- All image URLs point to `images.example.com`, which doesn't exist, so
+  listed photos never load. Without a fallback, they show "Photo
+  unavailable" placeholders.
+- **Only Prospect Park is a real park.** The other eleven names don't match
+  any real park, though many sit at real places (e.g. "Central Plaza Green"
+  is at Bryant Park's coordinates). Showing a photo of Bryant Park as
+  "Central Plaza Green" would be inventing details, so only Prospect Park
+  has fallback photos.
+
+**Fallback photos** (`src/lib/parks/fallback-photos.ts`) treat the data like
+an external API: it is never changed. A park's listed photos always win; the
+fallback is used only if the listing has no photos or every listed photo
+fails to load. An entry only applies when both the park's id and name
+match, so a reused id can't show the wrong park. Photos are CC BY-SA 4.0
+from Wikimedia Commons, linked rather than copied, with the required credit
+under each.
+
 - Several addresses are partial ("Ridge Rd", "1 Plaza Way"), so directions
   use coordinates instead of addresses.
 - Ratings have no stated source or scale; I assume 0–5 and label them only
@@ -166,10 +190,10 @@ Target: WCAG 2.2 AA.
 
 **Automated** (all run in CI):
 
-- 49 unit and component tests (Vitest + Testing Library): data
-  normalization for every missing/invalid case, search, formatting, the photo
-  fallback and sparse park cards.
-- 82 browser tests (Playwright; 79 run, 3 apply to one device only)
+- 60 unit and component tests (Vitest + Testing Library): data
+  normalization for every missing/invalid case, search, formatting, amenity
+  ordering, when fallback photos may and may not appear, and park cards.
+- 86 browser tests (Playwright; 83 run, 3 apply to one device only)
   against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
   Enter/Space/Escape, skip link, focus after navigation), search, the 404
   page, missing data on the real sample parks, map tiles failing, the map
@@ -183,7 +207,7 @@ Target: WCAG 2.2 AA.
 **Manual**: I used the app in a browser at phone and desktop sizes, in both
 color schemes, with mouse and keyboard only, and reviewed screenshots of each
 screen (`pnpm screenshots` regenerates them; unlike the tests, it loads
-real map tiles, so run it by hand, occasionally).
+real map tiles and photos, so run it by hand, occasionally).
 
 **Independent review**: two separate AI review passes, each without any
 context from the build, audited the code: one for accessibility (WCAG 2.2
@@ -255,7 +279,8 @@ _[Fill in.]_
 ## Next steps before public use
 
 1. **Switch map tiles to a production tile provider** (and add its
-   attribution); OSM's public servers forbid production use.
+   attribution); OSM's public servers forbid production use. Likewise,
+   self-host the fallback photos rather than linking to Wikimedia.
 2. **Real data source and ownership**: an API or CMS the parks department
    maintains, validation at import time (the normalizer's warnings are a
    start), real photos with proper alt text, and a stated rating source.
@@ -275,6 +300,8 @@ _[Fill in.]_
 ```
 assets/parks.sample.json        supplied data (unchanged)
 src/lib/parks/                  normalize, search, format, data loading (+ tests)
+src/lib/parks/amenities.ts      amenity labels and display order
+src/lib/parks/fallback-photos.ts  credited photos for real parks, used only as a fallback
 src/app/page.tsx                home: list + map
 src/app/parks/[id]/page.tsx     park details (prerendered per park)
 src/components/park-explorer.tsx  search, List/Map toggle, shared selection
@@ -283,7 +310,7 @@ src/components/park-map.tsx     Leaflet map, accessible markers and popups
 src/components/stable-map-container.tsx  Leaflet map that survives navigation
 src/components/render-when-visible.tsx   defers the map until it's shown
 src/components/map-error-boundary.tsx    keeps the list working if the map fails
-src/components/park-photos.tsx  photos with "Photo unavailable" fallbacks
+src/components/park-photos.tsx  listed photos, placeholders, and the fallback-photo rule
 src/components/route-focus.tsx  focus management after navigation
 src/app/not-found.tsx, error.tsx, global-error.tsx  404 and error pages
 e2e/                            Playwright tests (incl. accessibility, regressions)
