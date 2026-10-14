@@ -115,11 +115,14 @@ function ParkCard({
           <button
             type="button"
             onClick={() => onShowOnMap(park.id)}
+            // Starts with the visible text so voice control ("click Show on
+            // map") still works; the park name tells screen reader users
+            // which of the many identical buttons this is.
+            aria-label={`Show on map: ${park.name}`}
             className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium hover:bg-surface-muted"
           >
             <PinIcon />
             Show on map
-            <span className="sr-only">: {park.name}</span>
           </button>
         ) : (
           <p className="text-sm text-muted italic">

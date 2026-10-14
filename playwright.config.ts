@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = Number(process.env.PORT ?? 3000);
+// A different port from `pnpm dev` (3000) so tests never reuse a dev server.
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
@@ -15,10 +16,11 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
+    // Tests run against a production build, which is what residents get.
     command: `pnpm build && pnpm start --port ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,

@@ -211,11 +211,11 @@ function ParkPopup({ park }: { park: ParkWithCoordinates }) {
       <Link
         ref={linkRef}
         href={`/parks/${park.id}`}
+        aria-label={`View park details: ${park.name}`}
         className="mt-1 font-semibold text-accent underline underline-offset-2 hover:text-accent-hover"
         data-popup-primary={park.id}
       >
         View park details
-        <span className="sr-only">: {park.name}</span>
       </Link>
     </div>
   );
