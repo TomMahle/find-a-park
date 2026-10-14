@@ -1,26 +1,161 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Text colors are chosen for at least 4.5:1 contrast against
+ * both --background and --surface; --focus has at least 3:1 against every
+ * surface it can appear on (WCAG 2.2 AA).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f5f7f3;
+  --surface: #ffffff;
+  --surface-muted: #eef2ec;
+  --foreground: #18211c;
+  --muted: #4f5c55;
+  --border: #d5ddd6;
+  --accent: #1d6a46;
+  --accent-hover: #155537;
+  --accent-soft: #e2f0e7;
+  --on-accent: #ffffff;
+  --focus: #1d4ed8;
+  --marker: #1d6a46;
+  --marker-selected: #b4410f;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0e1411;
+    --surface: #151d19;
+    --surface-muted: #1c2621;
+    --foreground: #e6ece8;
+    --muted: #a2b1a8;
+    --border: #2c3a33;
+    --accent: #6cc996;
+    --accent-hover: #8ad8ad;
+    --accent-soft: #19362a;
+    --on-accent: #0b1f15;
+    --focus: #93c5fd;
+    --marker: #1d6a46;
+    --marker-selected: #b4410f;
+    color-scheme: dark;
   }
 }
 
-body {
-  background: var(--background);
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* One consistent, highly visible focus indicator for every focusable element. */
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Leaflet overrides ----------------------------------------------------
+ * leaflet.css loads after this file (with the map's code), so every override
+ * is scoped under .park-map to win on specificity rather than source order.
+ */
+
+.park-map .leaflet-container {
+  font: inherit;
+  background: var(--surface-muted);
+  /* Keep map controls and popups below the sticky header and skip link. */
+  z-index: 0;
+}
+
+.park-marker {
+  /* Reset Leaflet's default divIcon box. */
+  background: none;
+  border: none;
+  color: var(--marker);
+  /* A real button target: the pin graphic sits inside a 44x44 hit area. */
+  display: grid;
+  place-items: end center;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.park-marker svg {
+  width: 30px;
+  height: 40px;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+  transition: transform 120ms ease-out;
+}
+
+.park-marker:hover svg,
+.park-marker:focus-visible svg {
+  transform: scale(1.12);
+}
+
+.park-marker--selected {
+  color: var(--marker-selected);
+  z-index: 1000 !important;
+}
+
+.park-marker--selected svg {
+  transform: scale(1.2);
+}
+
+.park-map .park-marker:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 0;
+}
+
+.park-map .leaflet-popup-content-wrapper,
+.park-map .leaflet-popup-tip {
+  background: var(--surface);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.park-map .leaflet-popup-content {
+  margin: 14px 36px 14px 16px;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.park-map .leaflet-popup-content p {
+  margin: 0;
+}
+
+.park-map .leaflet-container a.leaflet-popup-close-button {
+  width: 32px;
+  height: 32px;
+  font-size: 22px;
+  line-height: 32px;
+  color: var(--muted);
+}
+
+.park-map .leaflet-container .leaflet-control-attribution {
+  font-size: 0.75rem;
 }
