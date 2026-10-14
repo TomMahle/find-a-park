@@ -30,8 +30,14 @@ type StableMapContainerProps = {
  * map and throws.
  *
  * This version creates the map once and only destroys it when its element
- * has really left the document. While hidden, the DOM stays, so the map
- * survives, layers re-attach to it, and the user's pan and zoom are kept.
+ * has left the document by the time the cleanup runs. While hidden, the DOM
+ * stays, so the map survives, layers re-attach to it, and the user's pan and
+ * zoom are kept.
+ *
+ * Limitation: if Next.js later discards the hidden page outright, the cleanup
+ * has already run and won't run again, so `map.remove()` is never called.
+ * Pass `trackResize: false` (as ParkMap does) so Leaflet holds no `window`
+ * listener and the orphaned map can simply be garbage-collected.
  */
 export function StableMapContainer({
   options,

@@ -142,6 +142,31 @@ describe("normalizeParks", () => {
     ]);
   });
 
+  it("drops amenities that have no letters or digits", () => {
+    const { park, warnings } = normalizeOne({
+      ...minimal,
+      amenities: ["-", "trails"],
+    });
+    expect(park.amenities).toEqual(["trails"]);
+    expect(warnings).toEqual([
+      '"a-park": ignored amenity "-" because it has no words.',
+    ]);
+  });
+
+  it("warns about text fields that hold something other than text", () => {
+    const { park, warnings } = normalizeOne({
+      ...minimal,
+      hours: { open: "9", close: "5" },
+      description: 42,
+    });
+    expect(park.hours).toBeNull();
+    expect(park.description).toBeNull();
+    expect(warnings).toEqual([
+      '"a-park": ignored description because it is not text.',
+      '"a-park": ignored hours because it is not text.',
+    ]);
+  });
+
   it("ignores a non-list amenities value", () => {
     const { park, warnings } = normalizeOne({
       ...minimal,

@@ -21,6 +21,7 @@ describe("amenityLabel", () => {
 describe("formatAcreage", () => {
   it("pluralizes and groups thousands", () => {
     expect(formatAcreage(1)).toBe("1 acre");
+    expect(formatAcreage(1.04)).toBe("1 acre");
     expect(formatAcreage(2.25)).toBe("2.3 acres");
     expect(formatAcreage(1640)).toBe("1,640 acres");
   });

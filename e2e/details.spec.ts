@@ -12,7 +12,7 @@ test.describe("park details page", () => {
       page.getByText(/526-acre park in the heart of Brooklyn/),
     ).toBeVisible();
 
-    const visit = page.getByRole("complementary", { name: "Plan your visit" });
+    const visit = page.getByRole("region", { name: "Plan your visit" });
     await expect(visit).toContainText("6:00 AM - 1:00 AM");
     await expect(visit).toContainText("Brooklyn, NY 11225");
     await expect(visit).toContainText("526 acres");
@@ -41,7 +41,7 @@ test.describe("park details page", () => {
 
     // No address in the data.
     await page.goto("/parks/highland-dog-park");
-    const visit = page.getByRole("complementary", { name: "Plan your visit" });
+    const visit = page.getByRole("region", { name: "Plan your visit" });
     await expect(visit.getByText("Not listed")).toHaveCount(1);
     await expect(visit).toContainText("Address");
 
@@ -49,7 +49,7 @@ test.describe("park details page", () => {
     await page.goto("/parks/cedar-hill-nature-preserve");
     await expect(page.getByText("No photos available.")).toBeVisible();
     await expect(
-      page.getByRole("complementary", { name: "Plan your visit" }),
+      page.getByRole("region", { name: "Plan your visit" }),
     ).not.toContainText("out of 5");
   });
 

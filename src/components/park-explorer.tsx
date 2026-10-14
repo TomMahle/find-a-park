@@ -40,6 +40,19 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
     [results],
   );
   const unmappedCount = results.length - mappableParks.length;
+  const mapInstructionsId = useId();
+
+  const updateQuery = (next: string) => {
+    setQuery(next);
+    // A park the search hides can't stay selected: its card and marker are
+    // gone, and Leaflet doesn't report its popup closing in that case.
+    if (
+      selectedId !== null &&
+      !searchParks(parks, next).some((park) => park.id === selectedId)
+    ) {
+      setSelectedId(null);
+    }
+  };
 
   const showOnMap = useCallback((parkId: string) => {
     setView("map");
@@ -51,15 +64,23 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
 
   useScrollSelectedCardIntoView(selectedId);
 
+  if (parks.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border p-6">
+        No parks are listed yet. Please check back later.
+      </p>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start lg:gap-x-6">
       <div className="flex flex-col gap-3 lg:col-start-1">
-        <SearchField value={query} onChange={setQuery} />
-        <p role="status" className="text-sm text-muted">
-          {query.trim() === ""
-            ? `Showing all ${parks.length} parks`
-            : `Showing ${results.length} of ${parks.length} parks`}
-        </p>
+        <SearchField value={query} onChange={updateQuery} />
+        <ResultCount
+          shown={results.length}
+          total={parks.length}
+          searching={query.trim() !== ""}
+        />
         <div
           role="group"
           aria-label="Show parks as"
@@ -92,7 +113,7 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
             </p>
             <button
               type="button"
-              onClick={() => setQuery("")}
+              onClick={() => updateQuery("")}
               className="inline-flex min-h-11 items-center rounded-md border border-border px-4 font-semibold hover:bg-surface-muted"
             >
               Clear search
@@ -111,9 +132,11 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
         <h2 id="park-map-heading" className="sr-only">
           Map of parks
         </h2>
-        <p className="sr-only">
-          Each park is a button on the map. Use Tab to move between them and
-          Enter to open a summary. The park list has the same information.
+        <p id={mapInstructionsId} className="sr-only">
+          Each park is a button on the map: Tab moves between them, Enter or
+          Space opens a summary, and Escape closes it. When the map itself has
+          focus, arrow keys move it and plus and minus zoom. The park list has
+          the same information.
         </p>
         <div className="h-[70dvh] min-h-80 overflow-hidden rounded-lg border border-border bg-surface-muted lg:h-[calc(100dvh-2rem)]">
           {/* Gate on the full dataset, not search results, so the map isn't
@@ -133,6 +156,7 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
                   selectedId={selectedId}
                   showRequest={showRequest}
                   onSelect={setSelectedId}
+                  instructionsId={mapInstructionsId}
                 />
               </RenderWhenVisible>
             </MapErrorBoundary>
@@ -152,6 +176,43 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
       </section>
     </div>
   );
+}
+
+function ResultCount({
+  shown,
+  total,
+  searching,
+}: {
+  shown: number;
+  total: number;
+  searching: boolean;
+}) {
+  const parksWord = total === 1 ? "park" : "parks";
+  const text = searching
+    ? `Showing ${shown} of ${total} ${parksWord}`
+    : total === 1
+      ? "Showing 1 park"
+      : `Showing all ${total} parks`;
+  // Announce the count once typing pauses, not on every keystroke.
+  const announcement = useDebouncedValue(text, 500);
+
+  return (
+    <>
+      <p className="text-sm text-muted">{text}</p>
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
+    </>
+  );
+}
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
 }
 
 function SearchField({
@@ -174,7 +235,7 @@ function SearchField({
         onChange={(event) => onChange(event.target.value)}
         placeholder="Name, street or amenity, e.g. playground"
         autoComplete="off"
-        className="min-h-11 rounded-md border border-border bg-surface px-3 text-base placeholder:text-muted"
+        className="min-h-11 rounded-md border border-muted bg-surface px-3 text-base placeholder:text-muted"
       />
     </div>
   );

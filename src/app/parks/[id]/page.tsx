@@ -19,7 +19,10 @@ import {
 export const instant = false;
 
 export function generateStaticParams() {
-  return getParks().map((park) => ({ id: park.id }));
+  const params = getParks().map((park) => ({ id: park.id }));
+  // With Cache Components an empty list fails the build, so an empty dataset
+  // prerenders one placeholder id instead, which renders the 404 page.
+  return params.length > 0 ? params : [{ id: "no-parks" }];
 }
 
 export async function generateMetadata({
@@ -30,8 +33,7 @@ export async function generateMetadata({
   if (!park) return { title: "Park not found" };
   return {
     title: park.name,
-    description:
-      park.description ?? `Hours, amenities and directions for ${park.name}.`,
+    description: park.description ?? `Visitor information for ${park.name}.`,
   };
 }
 
@@ -43,14 +45,14 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
 
   return (
     <article className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <nav aria-label="Breadcrumb">
+      <div>
         <Link
           href="/"
           className="inline-flex min-h-11 items-center gap-1 rounded-md font-medium text-accent hover:text-accent-hover hover:underline"
         >
           <span aria-hidden="true">←</span> All parks
         </Link>
-      </nav>
+      </div>
 
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -63,7 +65,7 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
           hours and directions are what most residents need. On wide screens
           it sits in the right-hand column. */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
-        <aside
+        <section
           aria-labelledby="visit-heading"
           className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5 lg:sticky lg:top-4 lg:col-start-2 lg:row-start-1"
         >
@@ -99,7 +101,7 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
               listed.
             </NotListed>
           )}
-        </aside>
+        </section>
         <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
           <Section title="About">
             {park.description ? (
@@ -111,7 +113,8 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
 
           <Section title="Amenities">
             {park.amenities.length > 0 ? (
-              <ul className="flex flex-wrap gap-2">
+              // role="list" because Safari drops list semantics from unstyled lists.
+              <ul role="list" className="flex flex-wrap gap-2">
                 {park.amenities.map((amenity) => (
                   <li
                     key={amenity}

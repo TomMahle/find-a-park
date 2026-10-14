@@ -91,3 +91,22 @@ for (const colorScheme of ["light", "dark"] as const) {
     });
   });
 }
+
+test.describe("reflow at 320 CSS pixels (WCAG 1.4.10, ~400% zoom)", () => {
+  test.use({ viewport: { width: 320, height: 640 } });
+
+  for (const path of [
+    "/",
+    "/parks/prospect-park",
+    "/parks/highland-dog-park",
+    "/parks/no-such-park",
+  ]) {
+    test(`${path} has no horizontal scrolling`, async ({ page }) => {
+      await page.goto(path);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - window.innerWidth,
+      );
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  }
+});

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { RouteFocus } from "@/components/route-focus";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · Find a Park",
   },
   description:
-    "Find a park near you in New York City: browse the list or the map, then see hours, amenities and directions.",
+    "Find a park in New York City: browse the list or the map, then see hours, amenities and directions.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
+        <RouteFocus />
         <a
           href="#main"
           className="fixed top-2 left-2 z-50 -translate-y-16 rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus:translate-y-0"

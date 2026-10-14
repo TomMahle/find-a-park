@@ -18,7 +18,7 @@ export type Park = {
   /** Absolute http(s) image URLs. They may still fail to load at runtime. */
   images: string[];
   acreage: number | null;
-  /** Average rating on a 0–5 scale. */
+  /** Rating on a 0–5 scale. The data doesn't say where ratings come from. */
   rating: number | null;
 };
 

@@ -3,7 +3,8 @@
 /*
  * Design tokens. Text colors are chosen for at least 4.5:1 contrast against
  * both --background and --surface; --focus has at least 3:1 against every
- * surface it can appear on (WCAG 2.2 AA).
+ * page surface (WCAG 2.2 AA). On the map, whose tiles stay light in dark
+ * mode, a separate two-tone focus ring is used (see below).
  */
 :root {
   --background: #f5f7f3;
@@ -68,6 +69,12 @@
     outline: 3px solid var(--focus);
     outline-offset: 2px;
   }
+
+  /* Elements that only receive focus from code (the page heading after a
+     navigation, <main> from the skip link) aren't controls; no ring. */
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -82,8 +89,8 @@
 }
 
 /* ---- Leaflet overrides ----------------------------------------------------
- * leaflet.css loads after this file (with the map's code), so every override
- * is scoped under .park-map to win on specificity rather than source order.
+ * leaflet.css loads after this file (with the map's code) and has equal
+ * specificity, so every override is scoped under .park-map to win.
  */
 
 .park-map .leaflet-container {
@@ -93,42 +100,58 @@
   z-index: 0;
 }
 
-.park-marker {
+/* Map tiles are light in both color schemes, so focus on the map uses a
+   dark ring with a white halo, which stands out on any tile. */
+.park-map .park-marker:focus-visible,
+.park-map .leaflet-bar a:focus-visible,
+.park-map .leaflet-popup-close-button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px #fff;
+}
+
+/* The map itself is a Tab stop (arrow keys pan). Its wrapper clips overflow,
+   so draw the ring inside the edge. */
+.park-map .leaflet-container:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: -3px;
+}
+
+.park-map .park-marker {
   /* Reset Leaflet's default divIcon box. */
   background: none;
   border: none;
   color: var(--marker);
-  /* A real button target: the pin graphic sits inside a 44x44 hit area. */
+  /* A real button target: the pin is drawn bottom-centered in a 44x44 hit
+     area, so its tip lands on the icon anchor. */
   display: grid;
   place-items: end center;
   border-radius: 9999px;
   cursor: pointer;
 }
 
-.park-marker svg {
+.park-map .park-marker svg {
   width: 30px;
   height: 40px;
   filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+  /* Grow from the tip so the pin never drifts off its location. */
+  transform-origin: bottom center;
   transition: transform 120ms ease-out;
 }
 
-.park-marker:hover svg,
-.park-marker:focus-visible svg {
+.park-map .park-marker:hover svg,
+.park-map .park-marker:focus-visible svg {
   transform: scale(1.12);
 }
 
-.park-marker--selected {
+.park-map .park-marker--selected {
   color: var(--marker-selected);
+  /* Leaflet sets marker z-index inline, from latitude. */
   z-index: 1000 !important;
 }
 
-.park-marker--selected svg {
+.park-map .park-marker--selected svg {
   transform: scale(1.2);
-}
-
-.park-map .park-marker:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 0;
 }
 
 .park-map .leaflet-popup-content-wrapper,
@@ -144,7 +167,8 @@
   line-height: 1.4;
 }
 
-.park-map .leaflet-popup-content p {
+.park-map .leaflet-popup-content p,
+.park-map .leaflet-popup-content h3 {
   margin: 0;
 }
 
@@ -167,6 +191,18 @@
   color: var(--muted);
 }
 
+/* Leaflet's own hover/focus gray is 2.4:1 on the dark popup. */
+.park-map .leaflet-container a.leaflet-popup-close-button:hover,
+.park-map .leaflet-container a.leaflet-popup-close-button:focus {
+  color: var(--foreground);
+}
+
 .park-map .leaflet-container .leaflet-control-attribution {
   font-size: 0.75rem;
+}
+
+/* Links inside the attribution are told apart from its text by more than
+   color alone (WCAG 1.4.1). */
+.park-map .leaflet-container .leaflet-control-attribution a {
+  text-decoration: underline;
 }

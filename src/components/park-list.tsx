@@ -14,7 +14,8 @@ type ParkListProps = {
 
 export function ParkList({ parks, selectedId, onShowOnMap }: ParkListProps) {
   return (
-    <ul className="flex flex-col gap-3" aria-label="Parks">
+    // role="list" because Safari drops list semantics from unstyled lists.
+    <ul role="list" className="flex flex-col gap-3" aria-label="Parks">
       {parks.map((park) => (
         <li key={park.id}>
           <ParkCard
@@ -93,17 +94,21 @@ function ParkCard({
       )}
 
       {shownAmenities.length > 0 && (
-        <ul className="flex flex-wrap gap-1.5" aria-label="Amenities">
+        <ul
+          role="list"
+          className="flex flex-wrap gap-1.5"
+          aria-label="Amenities"
+        >
           {shownAmenities.map((amenity) => (
             <li
               key={amenity}
-              className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium"
+              className="rounded-full bg-surface-muted px-2.5 py-0.5 text-[0.8125rem] font-medium"
             >
               {amenityLabel(amenity)}
             </li>
           ))}
           {hiddenAmenityCount > 0 && (
-            <li className="px-1 py-0.5 text-xs text-muted">
+            <li className="px-1 py-0.5 text-[0.8125rem] text-muted">
               +{hiddenAmenityCount} more
             </li>
           )}

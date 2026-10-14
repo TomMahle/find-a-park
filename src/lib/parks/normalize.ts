@@ -54,11 +54,11 @@ export function normalizeParks(input: unknown): {
     parks.push({
       id,
       name,
-      description: text(record.description),
+      description: optionalText(record.description, "description", warn),
       coordinates: coordinates(location.lat, location.lng, warn),
-      address: text(location.address),
-      amenities: stringList(record.amenities, "amenities", warn),
-      hours: text(record.hours),
+      address: optionalText(location.address, "address", warn),
+      amenities: amenitySlugs(record.amenities, warn),
+      hours: optionalText(record.hours, "hours", warn),
       images: imageUrls(record.images, warn),
       acreage: numberInRange(record.acreage, "acreage", warn, {
         min: 0,
@@ -86,6 +86,18 @@ function text(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed === "" ? null : trimmed;
+}
+
+/** Like `text`, but warns when a value is present and isn't text at all. */
+function optionalText(
+  value: unknown,
+  field: string,
+  warn: Warn,
+): string | null {
+  if (value !== null && value !== undefined && typeof value !== "string") {
+    warn(`ignored ${field} because it is not text.`);
+  }
+  return text(value);
 }
 
 function numberInRange(
@@ -143,6 +155,15 @@ function stringList(value: unknown, field: string, warn: Warn): string[] {
     warn(`ignored ${value.length - items.length} empty or invalid ${field}.`);
   }
   return [...new Set(items)];
+}
+
+/** Amenity slugs need a letter or digit to make a readable label. */
+function amenitySlugs(value: unknown, warn: Warn): string[] {
+  return stringList(value, "amenities", warn).filter((slug) => {
+    if (/[\p{Letter}\p{Number}]/u.test(slug)) return true;
+    warn(`ignored amenity ${JSON.stringify(slug)} because it has no words.`);
+    return false;
+  });
 }
 
 function imageUrls(value: unknown, warn: Warn): string[] {

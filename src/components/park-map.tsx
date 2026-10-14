@@ -13,16 +13,21 @@ import { StableMapContainer } from "./stable-map-container";
  * Tiles come from the OpenStreetMap Foundation's public servers by default,
  * which is fine for local development and demos but not allowed for
  * production traffic. Point these at a tile provider before public launch.
+ * (NEXT_PUBLIC_ values are read at build time.)
  */
+const CUSTOM_TILE_URL = process.env.NEXT_PUBLIC_MAP_TILE_URL || undefined;
 const TILE_URL =
-  process.env.NEXT_PUBLIC_MAP_TILE_URL ??
-  "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  CUSTOM_TILE_URL ?? "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const TILE_ATTRIBUTION =
-  process.env.NEXT_PUBLIC_MAP_TILE_ATTRIBUTION ??
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  process.env.NEXT_PUBLIC_MAP_TILE_ATTRIBUTION ||
+  (CUSTOM_TILE_URL
+    ? ""
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
 
 /** Zoom used when jumping to a single park from the list. */
 const PARK_ZOOM = 15;
+/** Popups stay narrow enough to fit a 320px-wide phone screen. */
+const POPUP_MAX_WIDTH = 220;
 
 export type ShowOnMapRequest = {
   parkId: string;
@@ -38,6 +43,8 @@ type ParkMapProps = {
   selectedId: string | null;
   showRequest: ShowOnMapRequest | null;
   onSelect: (parkId: string | null) => void;
+  /** Id of the visually hidden keyboard instructions for the map. */
+  instructionsId: string;
 };
 
 export default function ParkMap({
@@ -46,6 +53,7 @@ export default function ParkMap({
   selectedId,
   showRequest,
   onSelect,
+  instructionsId,
 }: ParkMapProps) {
   const [tilesFailed, setTilesFailed] = useState(false);
   const anyTileLoaded = useRef(false);
@@ -58,12 +66,15 @@ export default function ParkMap({
           coordinates.lat,
           coordinates.lng,
         ])}
-        boundsOptions={{ padding: [40, 40] }}
+        boundsOptions={{ padding: [40, 40], maxZoom: PARK_ZOOM }}
         options={{
           maxZoom: 18,
           zoomAnimation: !reducedMotion,
           fadeAnimation: !reducedMotion,
           markerZoomAnimation: !reducedMotion,
+          // InvalidateSizeOnResize already handles resizing. Leaflet's own
+          // window listener would also keep a discarded map alive forever.
+          trackResize: false,
         }}
         className="h-full w-full"
       >
@@ -82,6 +93,7 @@ export default function ParkMap({
           }}
         />
         <InvalidateSizeOnResize />
+        <MapKeyboardSupport instructionsId={instructionsId} />
         <PopupFocusManager />
         {parks.map((park) => (
           <ParkMarker
@@ -102,7 +114,9 @@ export default function ParkMap({
       {tilesFailed && (
         <p
           role="status"
-          className="absolute inset-x-3 top-3 z-[1000] rounded-md border border-border bg-surface px-3 py-2 text-sm shadow-md"
+          // Bottom left, clear of the zoom buttons (top left) and the
+          // attribution (bottom right).
+          className="absolute bottom-7 left-3 z-[1000] max-w-[calc(100%-1.5rem)] rounded-md border border-border bg-surface px-3 py-2 text-sm shadow-md"
         >
           The map background couldn’t load. Park markers still work, and every
           park is in the list.
@@ -118,7 +132,8 @@ function markerIcon(selected: boolean) {
   return L.divIcon({
     html: PIN_SVG,
     className: selected ? "park-marker park-marker--selected" : "park-marker",
-    // A 44x44 target (WCAG 2.5.5) whose bottom center is the pin's tip.
+    // A 44x44 target (WCAG 2.5.5); the pin is drawn bottom-centered in it
+    // (see .park-marker in globals.css), so its tip is at (22, 42).
     iconSize: [44, 44],
     iconAnchor: [22, 42],
     popupAnchor: [0, -40],
@@ -151,13 +166,12 @@ function ParkMarker({
       ref={markerRef}
       position={[park.coordinates.lat, park.coordinates.lng]}
       icon={icon}
-      title={park.name}
       eventHandlers={{
         popupopen: () => onSelect(park.id),
         popupclose: () => onSelect(null),
       }}
     >
-      <Popup>
+      <Popup maxWidth={POPUP_MAX_WIDTH}>
         <ParkPopup park={park} />
       </Popup>
     </Marker>
@@ -165,9 +179,9 @@ function ParkMarker({
 }
 
 /**
- * Leaflet makes markers focusable with role="button", but only gives them a
- * `title` and only opens the popup on Enter. Give each marker a proper
- * accessible name and support Space too, as a native button would.
+ * Leaflet makes markers focusable with role="button", but gives them no
+ * accessible name and only opens the popup on Enter. Name each marker and
+ * support Space too, as a native button would.
  *
  * Leaflet reuses the same element when a divIcon changes (e.g. on
  * selection), so this only needs to run once per element.
@@ -189,6 +203,11 @@ function ParkPopup({ park }: { park: ParkWithCoordinates }) {
   const linkRef = useRef<HTMLAnchorElement>(null);
   const amenities = park.amenities.slice(0, 3).map(amenityLabel);
   const more = park.amenities.length - amenities.length;
+  const ids = {
+    heading: `popup-${park.id}-heading`,
+    address: `popup-${park.id}-address`,
+    amenities: `popup-${park.id}-amenities`,
+  };
 
   // react-leaflet first renders popup content just after the popup opens, so
   // on the first open this is the earliest moment the link exists. Moving
@@ -199,11 +218,19 @@ function ParkPopup({ park }: { park: ParkWithCoordinates }) {
   }, []);
 
   return (
-    <div className="flex min-w-48 flex-col gap-1.5">
-      <p className="text-base font-semibold">{park.name}</p>
-      <p className="text-muted">{park.address ?? "Address not listed"}</p>
+    <div
+      role="group"
+      aria-labelledby={ids.heading}
+      className="flex min-w-44 flex-col gap-1.5"
+    >
+      <h3 id={ids.heading} className="text-base font-semibold">
+        {park.name}
+      </h3>
+      <p id={ids.address} className="text-muted">
+        {park.address ?? "Address not listed"}
+      </p>
       {amenities.length > 0 && (
-        <p className="text-muted">
+        <p id={ids.amenities} className="text-muted">
           {amenities.join(" · ")}
           {more > 0 && ` · +${more} more`}
         </p>
@@ -212,6 +239,11 @@ function ParkPopup({ park }: { park: ParkWithCoordinates }) {
         ref={linkRef}
         href={`/parks/${park.id}`}
         aria-label={`View park details: ${park.name}`}
+        // Focus lands on this link, so let it carry the summary too: screen
+        // readers announce the address and amenities as its description.
+        aria-describedby={
+          amenities.length > 0 ? `${ids.address} ${ids.amenities}` : ids.address
+        }
         className="mt-1 font-semibold text-accent underline underline-offset-2 hover:text-accent-hover"
         data-popup-primary={park.id}
       >
@@ -232,28 +264,32 @@ function ShowOnMap({
   reducedMotion: boolean;
 }) {
   const map = useMap();
+  const handledNonce = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!request) return;
+    // React re-runs effects when Next.js shows a hidden page again (and in
+    // Strict Mode), so remember which request was handled; otherwise coming
+    // Back would jump the map to the last "Show on map" park.
+    if (!request || request.nonce === handledNonce.current) return;
+    handledNonce.current = request.nonce;
+
     const park = parks.find((candidate) => candidate.id === request.parkId);
-    if (!park) return;
+    const marker = findMarker(map, request.parkId);
+    if (!park || !marker) return;
 
     // The map may have just been revealed (mobile List/Map toggle) and still
     // think it is 0x0, which would break centering.
     map.invalidateSize();
-    const target = L.latLng(park.coordinates.lat, park.coordinates.lng);
-    map.setView(target, Math.max(map.getZoom(), PARK_ZOOM), {
-      animate: !reducedMotion,
-    });
-
-    map.eachLayer((layer) => {
-      if (
-        layer instanceof L.Marker &&
-        layer.getElement()?.dataset.parkId === park.id
-      ) {
-        layer.openPopup();
-      }
-    });
+    // Open the popup only once the map has arrived. Opening it during the
+    // animation stops the pan partway (popup auto-pan and moving focus into
+    // the popup both interrupt it), leaving the park off-center. Leaflet
+    // fires moveend even when no move is needed, so the popup always opens.
+    map.once("moveend", () => marker.openPopup());
+    map.setView(
+      [park.coordinates.lat, park.coordinates.lng],
+      Math.max(map.getZoom(), PARK_ZOOM),
+      { animate: !reducedMotion },
+    );
     // Only react to new requests, not to the parks list being re-created.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request, map]);
@@ -261,11 +297,62 @@ function ShowOnMap({
   return null;
 }
 
+function findMarker(map: L.Map, parkId: string): L.Marker | null {
+  let found: L.Marker | null = null;
+  map.eachLayer((layer) => {
+    if (
+      layer instanceof L.Marker &&
+      layer.getElement()?.dataset.parkId === parkId
+    ) {
+      found = layer;
+    }
+  });
+  return found;
+}
+
+/**
+ * Keyboard and screen reader support for the map as a whole, which Leaflet
+ * leaves out:
+ * - The map container is a Tab stop (for arrow-key panning and +/- zoom) but
+ *   has no role or name; give it both, plus the instructions.
+ * - Escape only closes a popup while the map container itself has focus,
+ *   not while focus is inside the popup or on a marker.
+ * - Leaflet's zoom and popup close controls are links with role="button"
+ *   that ignore Space, unlike real buttons.
+ */
+function MapKeyboardSupport({ instructionsId }: { instructionsId: string }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    container.setAttribute("role", "group");
+    container.setAttribute("aria-label", "Map of parks");
+    container.setAttribute("aria-describedby", instructionsId);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        map.closePopup();
+      } else if (
+        event.key === " " &&
+        event.target instanceof HTMLAnchorElement &&
+        event.target.getAttribute("role") === "button"
+      ) {
+        event.preventDefault();
+        event.target.click();
+      }
+    };
+    container.addEventListener("keydown", onKeyDown);
+    return () => container.removeEventListener("keydown", onKeyDown);
+  }, [map, instructionsId]);
+
+  return null;
+}
+
 /**
  * Leaflet popups don't manage focus. This moves focus into a popup when it
- * opens (with ParkPopup's help on the first open), puts it back on whatever
- * opened it (a marker or a "Show on map" button) when it closes, and makes
- * Escape close the popup, so keyboard users never lose their place.
+ * opens (with ParkPopup's help on the first open) and puts it back on
+ * whatever opened it (a marker or a "Show on map" button) when it closes, so
+ * keyboard users never lose their place.
  */
 function PopupFocusManager() {
   const map = useMap();
@@ -311,29 +398,15 @@ function PopupFocusManager() {
         ?.querySelector<HTMLElement>("[data-popup-primary]")
         ?.getAttribute("data-popup-primary");
       if (parkId) {
-        map
-          .getContainer()
-          .querySelector<HTMLElement>(
-            `.park-marker[data-park-id="${CSS.escape(parkId)}"]`,
-          )
-          ?.focus({ preventScroll: true });
+        findMarker(map, parkId)?.getElement()?.focus({ preventScroll: true });
       }
     };
 
-    // Leaflet only handles Escape while the map container itself has focus,
-    // not while focus is inside a popup or on a marker.
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") map.closePopup();
-    };
-    const container = map.getContainer();
-
     map.on("popupopen", onOpen);
     map.on("popupclose", onClose);
-    container.addEventListener("keydown", onKeyDown);
     return () => {
       map.off("popupopen", onOpen);
       map.off("popupclose", onClose);
-      container.removeEventListener("keydown", onKeyDown);
     };
   }, [map]);
 

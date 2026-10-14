@@ -18,6 +18,8 @@ const AMENITY_LABELS: Record<string, string> = {
 
 /** `"dog-run"` → `"Dog run"`; unknown slugs fall back to sentence case. */
 export function amenityLabel(slug: string): string {
+  // Slugs are normalized to contain at least one letter or digit, so this
+  // never returns an empty label.
   const known = AMENITY_LABELS[slug];
   if (known) return known;
   const words = slug.replace(/[-_]+/g, " ").trim();
@@ -26,7 +28,8 @@ export function amenityLabel(slug: string): string {
 
 export function formatAcreage(acres: number): string {
   const value = acres.toLocaleString("en-US", { maximumFractionDigits: 1 });
-  return `${value} ${acres === 1 ? "acre" : "acres"}`;
+  // Pluralize what's shown: 1.04 displays as "1", so "1 acre".
+  return `${value} ${value === "1" ? "acre" : "acres"}`;
 }
 
 export function formatRating(rating: number): string {
