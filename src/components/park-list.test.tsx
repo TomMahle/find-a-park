@@ -58,8 +58,30 @@ describe("ParkList", () => {
     expect(full).toHaveTextContent("4.3 out of 5");
     expect(full).toHaveTextContent("12 acres");
     const amenities = within(full).getByRole("list", { name: "Amenities" });
+    // Four chips plus the "+2 more" button.
     expect(within(amenities).getAllByRole("listitem")).toHaveLength(5);
-    expect(amenities).toHaveTextContent("+2 more");
+    expect(amenities).not.toHaveTextContent("Lake");
+  });
+
+  it("expands and collapses the remaining amenities in place", async () => {
+    const { full } = renderList();
+    const amenities = within(full).getByRole("list", { name: "Amenities" });
+    const more = within(full).getByRole("button", {
+      name: "+2 more amenities",
+    });
+    expect(more).toHaveAttribute("aria-expanded", "false");
+
+    await userEvent.click(more);
+    expect(amenities).toHaveTextContent("Lake");
+    expect(within(amenities).getAllByRole("listitem")).toHaveLength(7);
+    const fewer = within(full).getByRole("button", {
+      name: "Show fewer amenities",
+    });
+    expect(fewer).toHaveAttribute("aria-expanded", "true");
+    expect(fewer).toHaveFocus();
+
+    await userEvent.click(fewer);
+    expect(amenities).not.toHaveTextContent("Lake");
   });
 
   it("shows a sparse park without inventing details", () => {

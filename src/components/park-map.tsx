@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { amenityLabel } from "@/lib/parks/format";
+import { amenityLabel } from "@/lib/parks/amenities";
 import type { ParkWithCoordinates } from "@/lib/parks/types";
 import { StableMapContainer } from "./stable-map-container";
 

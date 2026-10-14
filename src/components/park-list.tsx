@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { amenityLabel, formatAcreage, formatRating } from "@/lib/parks/format";
+import { amenityLabel } from "@/lib/parks/amenities";
+import { formatAcreage, formatRating } from "@/lib/parks/format";
 import type { Park } from "@/lib/parks/types";
 
-/** How many amenities a card shows before summarizing the rest. */
+/** How many amenities a card shows before "+N more". */
 const CARD_AMENITY_LIMIT = 4;
 
 type ParkListProps = {
@@ -39,8 +43,15 @@ function ParkCard({
   onShowOnMap: (parkId: string) => void;
 }) {
   const headingId = `park-card-${park.id}`;
-  const shownAmenities = park.amenities.slice(0, CARD_AMENITY_LIMIT);
-  const hiddenAmenityCount = park.amenities.length - shownAmenities.length;
+  const amenitiesId = `park-card-${park.id}-amenities`;
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const hiddenAmenityCount = Math.max(
+    park.amenities.length - CARD_AMENITY_LIMIT,
+    0,
+  );
+  const shownAmenities = showAllAmenities
+    ? park.amenities
+    : park.amenities.slice(0, CARD_AMENITY_LIMIT);
 
   return (
     <article
@@ -95,8 +106,9 @@ function ParkCard({
 
       {shownAmenities.length > 0 && (
         <ul
+          id={amenitiesId}
           role="list"
-          className="flex flex-wrap gap-1.5"
+          className="flex flex-wrap items-center gap-1.5"
           aria-label="Amenities"
         >
           {shownAmenities.map((amenity) => (
@@ -108,8 +120,24 @@ function ParkCard({
             </li>
           ))}
           {hiddenAmenityCount > 0 && (
-            <li className="px-1 py-0.5 text-[0.8125rem] text-muted">
-              +{hiddenAmenityCount} more
+            <li>
+              <button
+                type="button"
+                aria-expanded={showAllAmenities}
+                aria-controls={amenitiesId}
+                // Visible text first (for voice control), then what it's for.
+                aria-label={
+                  showAllAmenities
+                    ? "Show fewer amenities"
+                    : `+${hiddenAmenityCount} more amenities`
+                }
+                onClick={() => setShowAllAmenities((shown) => !shown)}
+                className="min-h-6 rounded-full px-2 text-[0.8125rem] font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
+              >
+                {showAllAmenities
+                  ? "Show fewer"
+                  : `+${hiddenAmenityCount} more`}
+              </button>
             </li>
           )}
         </ul>

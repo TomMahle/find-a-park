@@ -11,7 +11,10 @@ export type Park = {
   /** `null` when the source has no usable coordinates; such parks are listed but not mapped. */
   coordinates: Coordinates | null;
   address: string | null;
-  /** Amenity slugs as given in the source (e.g. `"dog-run"`), de-duplicated. */
+  /**
+   * Amenity slugs as given in the source (e.g. `"dog-run"`), de-duplicated,
+   * with common ones like restrooms and parking moved last (see amenities.ts).
+   */
   amenities: string[];
   /** Free-text opening hours exactly as published (e.g. `"Dawn to dusk"`). */
   hours: string | null;

@@ -1,4 +1,4 @@
-import { amenityLabel } from "./format";
+import { amenityLabel } from "./amenities";
 import type { Park } from "./types";
 
 /**

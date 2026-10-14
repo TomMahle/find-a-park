@@ -3,12 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ParkPhotos } from "@/components/park-photos";
 import { getPark, getParks } from "@/lib/parks/data";
-import {
-  amenityLabel,
-  directionsUrl,
-  formatAcreage,
-  formatRating,
-} from "@/lib/parks/format";
+import { amenityLabel } from "@/lib/parks/amenities";
+import { directionsUrl, formatAcreage, formatRating } from "@/lib/parks/format";
 
 /*
  * Opt out of Next.js's "instant navigation" check for this route. Passing it

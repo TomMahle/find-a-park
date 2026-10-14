@@ -1,22 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  amenityLabel,
-  directionsUrl,
-  formatAcreage,
-  formatRating,
-} from "./format";
-
-describe("amenityLabel", () => {
-  it("uses curated labels where sentence case reads badly", () => {
-    expect(amenityLabel("wifi")).toBe("Wi-Fi");
-    expect(amenityLabel("dog-run")).toBe("Dog run");
-  });
-
-  it("falls back to sentence case for unknown slugs", () => {
-    expect(amenityLabel("ice-skating_rink")).toBe("Ice skating rink");
-    expect(amenityLabel("lake")).toBe("Lake");
-  });
-});
+import { directionsUrl, formatAcreage, formatRating } from "./format";
 
 describe("formatAcreage", () => {
   it("pluralizes and groups thousands", () => {

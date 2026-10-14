@@ -1,3 +1,4 @@
+import { orderAmenities } from "./amenities";
 import type { Coordinates, Park } from "./types";
 
 /**
@@ -57,7 +58,7 @@ export function normalizeParks(input: unknown): {
       description: optionalText(record.description, "description", warn),
       coordinates: coordinates(location.lat, location.lng, warn),
       address: optionalText(location.address, "address", warn),
-      amenities: amenitySlugs(record.amenities, warn),
+      amenities: orderAmenities(amenitySlugs(record.amenities, warn)),
       hours: optionalText(record.hours, "hours", warn),
       images: imageUrls(record.images, warn),
       acreage: numberInRange(record.acreage, "acreage", warn, {
