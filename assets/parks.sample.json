@@ -3,25 +3,10 @@
     "id": "prospect-park",
     "name": "Prospect Park",
     "description": "A 526-acre park in the heart of Brooklyn with meadows, woodlands, a lake, and the borough's only forest. Designed by Olmsted and Vaux after they completed Central Park.",
-    "location": {
-      "lat": 40.6602,
-      "lng": -73.969,
-      "address": "Brooklyn, NY 11225"
-    },
-    "amenities": [
-      "playground",
-      "dog-run",
-      "trails",
-      "restrooms",
-      "parking",
-      "lake",
-      "picnic-areas"
-    ],
+    "location": { "lat": 40.6602, "lng": -73.969, "address": "Brooklyn, NY 11225" },
+    "amenities": ["playground", "dog-run", "trails", "restrooms", "parking", "lake", "picnic-areas"],
     "hours": "6:00 AM - 1:00 AM",
-    "images": [
-      "https://images.example.com/prospect-1.jpg",
-      "https://images.example.com/prospect-2.jpg"
-    ],
+    "images": ["https://images.example.com/prospect-1.jpg", "https://images.example.com/prospect-2.jpg"],
     "acreage": 526,
     "rating": 4.7
   },
@@ -29,11 +14,7 @@
     "id": "riverside-commons",
     "name": "Riverside Commons",
     "description": "A narrow riverfront greenway popular with runners and cyclists, with unobstructed sunset views over the water.",
-    "location": {
-      "lat": 40.8009,
-      "lng": -73.9722,
-      "address": "Riverside Dr, New York, NY 10024"
-    },
+    "location": { "lat": 40.8009, "lng": -73.9722, "address": "Riverside Dr, New York, NY 10024" },
     "amenities": ["trails", "restrooms", "waterfront", "bike-path"],
     "hours": "6:00 AM - 10:00 PM",
     "images": ["https://images.example.com/riverside-1.jpg"],
@@ -55,11 +36,7 @@
     "id": "sunset-playground",
     "name": "Sunset Playground",
     "description": "A compact neighborhood playground with shaded seating, a splash pad open in summer, and a small basketball court.",
-    "location": {
-      "lat": 40.6452,
-      "lng": -74.0121,
-      "address": "44th St & 7th Ave"
-    },
+    "location": { "lat": 40.6452, "lng": -74.0121, "address": "44th St & 7th Ave" },
     "amenities": ["playground", "splash-pad", "basketball", "restrooms"],
     "hours": "8:00 AM - 8:00 PM",
     "images": ["https://images.example.com/sunset-1.jpg"],
@@ -81,18 +58,8 @@
     "id": "veterans-memorial-field",
     "name": "Veterans Memorial Field",
     "description": "Community sports complex with baseball diamonds, soccer fields, and a walking loop. Hosts local league play on weekends.",
-    "location": {
-      "lat": 40.7282,
-      "lng": -73.7949,
-      "address": "Memorial Dr, Queens, NY 11367"
-    },
-    "amenities": [
-      "sports-fields",
-      "trails",
-      "restrooms",
-      "parking",
-      "playground"
-    ],
+    "location": { "lat": 40.7282, "lng": -73.7949, "address": "Memorial Dr, Queens, NY 11367" },
+    "amenities": ["sports-fields", "trails", "restrooms", "parking", "playground"],
     "hours": "7:00 AM - 11:00 PM",
     "images": ["https://images.example.com/veterans-1.jpg"],
     "acreage": 47,
@@ -102,23 +69,10 @@
     "id": "old-mill-botanical-garden",
     "name": "Old Mill Botanical Garden",
     "description": null,
-    "location": {
-      "lat": 40.6215,
-      "lng": -74.0776,
-      "address": "12 Old Mill Ln"
-    },
-    "amenities": [
-      "gardens",
-      "restrooms",
-      "cafe",
-      "gift-shop",
-      "accessible-paths"
-    ],
+    "location": { "lat": 40.6215, "lng": -74.0776, "address": "12 Old Mill Ln" },
+    "amenities": ["gardens", "restrooms", "cafe", "gift-shop", "accessible-paths"],
     "hours": "9:00 AM - 5:00 PM",
-    "images": [
-      "https://images.example.com/oldmill-1.jpg",
-      "https://images.example.com/oldmill-2.jpg"
-    ],
+    "images": ["https://images.example.com/oldmill-1.jpg", "https://images.example.com/oldmill-2.jpg"],
     "acreage": 34,
     "rating": 4.6
   },
@@ -127,13 +81,7 @@
     "name": "Lakeshore Point",
     "description": "Small waterfront park with a fishing pier, kayak launch, and a handful of picnic tables. Quiet on weekday mornings.",
     "location": { "lat": 40.5795, "lng": -73.9707, "address": "Shore Pkwy" },
-    "amenities": [
-      "waterfront",
-      "fishing",
-      "kayak-launch",
-      "picnic-areas",
-      "parking"
-    ],
+    "amenities": ["waterfront", "fishing", "kayak-launch", "picnic-areas", "parking"],
     "hours": "Dawn to dusk",
     "images": ["https://images.example.com/lakeshore-1.jpg"],
     "acreage": 18,
@@ -155,13 +103,7 @@
     "name": "Central Plaza Green",
     "description": "An urban pocket park and event lawn ringed by food vendors, with free public WiFi and frequent weekend markets.",
     "location": { "lat": 40.7549, "lng": -73.984, "address": "1 Plaza Way" },
-    "amenities": [
-      "event-lawn",
-      "wifi",
-      "restrooms",
-      "food-vendors",
-      "accessible-paths"
-    ],
+    "amenities": ["event-lawn", "wifi", "restrooms", "food-vendors", "accessible-paths"],
     "hours": "24 hours",
     "images": ["https://images.example.com/plaza-1.jpg"],
     "acreage": 6,
@@ -172,12 +114,7 @@
     "name": "Willow Creek Wetlands",
     "description": "Boardwalk trails wind through a protected tidal wetland. Interpretive signage explains the ecosystem.",
     "location": { "lat": 40.6001, "lng": -74.0899, "address": "Creek Rd" },
-    "amenities": [
-      "boardwalk",
-      "wildlife-viewing",
-      "trails",
-      "accessible-paths"
-    ],
+    "amenities": ["boardwalk", "wildlife-viewing", "trails", "accessible-paths"],
     "hours": "Dawn to dusk",
     "images": ["https://images.example.com/willow-1.jpg"],
     "acreage": 78,
