@@ -21,7 +21,7 @@ export function ParkPhotos({
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
 
   return (
-    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <ul className="grid grid-cols-2 gap-3">
       {images.map((src, index) => {
         const alt = `${parkName}, photo ${index + 1} of ${images.length}`;
         return (
@@ -36,7 +36,9 @@ export function ParkPhotos({
                 className="flex h-full flex-col items-center justify-center gap-2 text-muted"
               >
                 <PhotoIcon />
-                <span className="text-sm">Photo unavailable</span>
+                <span className="px-2 text-center text-sm">
+                  Photo unavailable
+                </span>
               </div>
             ) : (
               <Image
@@ -44,7 +46,7 @@ export function ParkPhotos({
                 alt={alt}
                 fill
                 unoptimized
-                sizes="(min-width: 640px) 50vw, 100vw"
+                sizes="(min-width: 1024px) 320px, 50vw"
                 className="object-cover"
                 onError={() =>
                   setFailed((previous) => new Set(previous).add(src))

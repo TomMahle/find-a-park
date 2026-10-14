@@ -31,6 +31,9 @@ export type ShowOnMapRequest = {
 };
 
 type ParkMapProps = {
+  /** Parks the map frames when it first opens (all of them, not search results). */
+  initialView: ParkWithCoordinates[];
+  /** Parks to show as markers. */
   parks: ParkWithCoordinates[];
   selectedId: string | null;
   showRequest: ShowOnMapRequest | null;
@@ -38,6 +41,7 @@ type ParkMapProps = {
 };
 
 export default function ParkMap({
+  initialView,
   parks,
   selectedId,
   showRequest,
@@ -50,7 +54,7 @@ export default function ParkMap({
   return (
     <div className="park-map relative h-full w-full">
       <StableMapContainer
-        bounds={parks.map(({ coordinates }) => [
+        bounds={initialView.map(({ coordinates }) => [
           coordinates.lat,
           coordinates.lng,
         ])}

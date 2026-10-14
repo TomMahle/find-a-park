@@ -10,6 +10,14 @@ import {
   formatRating,
 } from "@/lib/parks/format";
 
+/*
+ * Opt out of Next.js's "instant navigation" check for this route. Passing it
+ * would mean reading `params` inside <Suspense>, and calling notFound() there
+ * sends a 200 "soft 404" for unknown parks. Every real park page is
+ * prerendered at build time anyway, so nothing here is slow to wait for.
+ */
+export const instant = false;
+
 export function generateStaticParams() {
   return getParks().map((park) => ({ id: park.id }));
 }
@@ -51,45 +59,13 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
         {park.address && <p className="text-lg text-muted">{park.address}</p>}
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-        <div className="flex flex-col gap-8">
-          <Section title="About">
-            {park.description ? (
-              <p className="max-w-prose leading-relaxed">{park.description}</p>
-            ) : (
-              <NotListed>No description available.</NotListed>
-            )}
-          </Section>
-
-          <Section title="Amenities">
-            {park.amenities.length > 0 ? (
-              <ul className="flex flex-wrap gap-2">
-                {park.amenities.map((amenity) => (
-                  <li
-                    key={amenity}
-                    className="rounded-full border border-border bg-surface px-3 py-1 text-sm font-medium"
-                  >
-                    {amenityLabel(amenity)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <NotListed>No amenities listed.</NotListed>
-            )}
-          </Section>
-
-          <Section title="Photos">
-            {park.images.length > 0 ? (
-              <ParkPhotos parkName={park.name} images={park.images} />
-            ) : (
-              <NotListed>No photos available.</NotListed>
-            )}
-          </Section>
-        </div>
-
+      {/* Visit info comes first in reading order (and first on phones), since
+          hours and directions are what most residents need. On wide screens
+          it sits in the right-hand column. */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-6">
         <aside
           aria-labelledby="visit-heading"
-          className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5 lg:sticky lg:top-4"
+          className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5 lg:sticky lg:top-4 lg:col-start-2 lg:row-start-1"
         >
           <h2 id="visit-heading" className="text-lg font-semibold">
             Plan your visit
@@ -124,6 +100,40 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
             </NotListed>
           )}
         </aside>
+        <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
+          <Section title="About">
+            {park.description ? (
+              <p className="max-w-prose leading-relaxed">{park.description}</p>
+            ) : (
+              <NotListed>No description available.</NotListed>
+            )}
+          </Section>
+
+          <Section title="Amenities">
+            {park.amenities.length > 0 ? (
+              <ul className="flex flex-wrap gap-2">
+                {park.amenities.map((amenity) => (
+                  <li
+                    key={amenity}
+                    className="rounded-full border border-border bg-surface px-3 py-1 text-sm font-medium"
+                  >
+                    {amenityLabel(amenity)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <NotListed>No amenities listed.</NotListed>
+            )}
+          </Section>
+
+          <Section title="Photos">
+            {park.images.length > 0 ? (
+              <ParkPhotos parkName={park.name} images={park.images} />
+            ) : (
+              <NotListed>No photos available.</NotListed>
+            )}
+          </Section>
+        </div>
       </div>
     </article>
   );
