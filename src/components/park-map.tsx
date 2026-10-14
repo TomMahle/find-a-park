@@ -132,7 +132,8 @@ function markerIcon(selected: boolean) {
   return L.divIcon({
     html: PIN_SVG,
     className: selected ? "park-marker park-marker--selected" : "park-marker",
-    // A 44x44 target (WCAG 2.5.5); the pin is drawn bottom-centered in it
+    // A comfortable 44x44 target (WCAG 2.5.5; AA's 2.5.8 needs only 24px);
+    // the pin is drawn bottom-centered in it
     // (see .park-marker in globals.css), so its tip is at (22, 42).
     iconSize: [44, 44],
     iconAnchor: [22, 42],

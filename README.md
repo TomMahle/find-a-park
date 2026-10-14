@@ -11,16 +11,23 @@ and directions. Built for the Granicus "Find a Park" take-home.
 
 ## Run it
 
-Requirements: **Node 24** (pinned in `.nvmrc` and `.tool-versions`) and
-**pnpm 10** (`corepack enable` will provide it). No API keys or accounts are
-needed.
+Requirements: **Node 24** (pinned in `.nvmrc` and `.tool-versions`),
+**pnpm 10** (`corepack enable` will provide it), and an internet connection
+(the Geist font is downloaded from Google Fonts during `dev` and `build`). No
+API keys or accounts are needed.
 
 ```bash
-pnpm install
+pnpm install                            # also installs a git pre-commit hook (Prettier)
 pnpm dev                                # http://localhost:3000
 ```
 
-Production build: `pnpm build && pnpm start`.
+Production: `pnpm build && pnpm start`. The app needs a Node server (`next
+start` or a Node host); it isn't a static export, because unknown park URLs
+are rendered on request to return a real 404.
+
+Optional, read at **build** time: `NEXT_PUBLIC_MAP_TILE_URL` and
+`NEXT_PUBLIC_MAP_TILE_ATTRIBUTION` point the map at another tile provider. If
+you set a custom URL, set its attribution too (it defaults to empty).
 
 ### Checks
 
@@ -30,7 +37,9 @@ pnpm exec playwright install chromium   # once, for the browser tests
 pnpm test:e2e                           # end-to-end + accessibility, desktop and phone
 ```
 
-CI (`.github/workflows/ci.yml`) runs both on every push and pull request.
+`pnpm test:e2e` builds the app and serves it on port 3100 (`E2E_PORT` changes
+it); locally it reuses a server already running on that port. CI
+(`.github/workflows/ci.yml`) runs both on every push and pull request.
 
 ## What works
 
@@ -72,9 +81,9 @@ Works without the resident's location; the app never asks for it.
 ## Important decisions
 
 - **Next.js 16 (App Router) + TypeScript**, starting from the official
-  `create-next-app` template rather than a third-party boilerplate. Every
-  page is prerendered at build time from the JSON file; there is no server
-  data access at request time.
+  `create-next-app` template rather than a third-party boilerplate. The home
+  page and every park page are prerendered at build time from the JSON file;
+  only unknown park URLs are rendered on request (to return a real 404).
 - **Leaflet with OpenStreetMap tiles.** No API key for the interviewer to
   supply, a small bundle, and markers that are keyboard-focusable out of the
   box. The trade-off: OSM's public tile servers don't allow production
@@ -89,8 +98,10 @@ Works without the resident's location; the app never asks for it.
   low-bandwidth users.
 - **One normalization step at the edge.** `src/lib/parks/normalize.ts` turns
   the raw JSON into a `Park` type where every optional field is a real value
-  or `null`/`[]`. UI code never re-checks the raw shape, and swapping in an
-  API later only changes `src/lib/parks/data.ts`.
+  or `null`/`[]`. UI code never re-checks the raw shape, and pages only talk
+  to `getParks`/`getPark` in `src/lib/parks/data.ts`. Swapping in an API means
+  changing that module and making those two functions (and their three
+  callers) async.
 - **Visit info first on the details page.** On phones, hours, address and
   directions come before the description and photos, because that's what
   most people opening a park page need.
@@ -102,22 +113,24 @@ I did not extend the schema.
 
 How missing or invalid values are handled (`src/lib/parks/normalize.ts`):
 
-| Situation                                        | What the app does                                  |
-| ------------------------------------------------ | -------------------------------------------------- |
-| Missing/blank text (description, hours, address) | Shows "Not listed" / "No description available."   |
-| Missing or invalid coordinates (incl. 0,0)       | Park stays in the list, says it isn't on the map   |
-| Empty or missing amenities/images                | "No amenities listed." / "No photos available."    |
-| Image URL that isn't http(s), or fails to load   | Dropped / replaced with a "Photo unavailable" tile |
-| Rating outside 0–5, non-positive acreage         | Treated as missing                                 |
-| No usable id or name, or a duplicate id          | Record skipped (it can't be shown or linked to)    |
+| Situation                                                                    | What the app does                                                                                                                                       |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Missing/blank/non-text description, hours or address                         | Details page: "Not listed" / "No description available." List card: "Address not listed"; missing hours, size or rating are simply left out of the card |
+| Missing or invalid coordinates (incl. 0,0)                                   | Park stays in the list, which says it isn't on the map; the details page says directions aren't available                                               |
+| Empty or missing amenities/images                                            | "No amenities listed." / "No photos available."                                                                                                         |
+| Amenity with no letters or digits (e.g. `"-"`)                               | Dropped                                                                                                                                                 |
+| Image URL that isn't http(s), or fails to load                               | Dropped / replaced with a "Photo unavailable" tile                                                                                                      |
+| Rating that isn't a number from 0 to 5; acreage that isn't a positive number | Treated as missing                                                                                                                                      |
+| Not an object, no name, no URL-safe id, or a duplicate id                    | Record skipped (it can't be shown or linked to)                                                                                                         |
 
 Every skipped record or ignored value is logged at build time so data
 problems are visible. Issues I noticed in the sample data:
 
 - **Cedar Hill Nature Preserve's coordinates (40.7128, -74.006) are exactly
   the commonly used "New York City" point at City Hall**, which suggests a
-  placeholder. I show it where the data says rather than guess a location,
-  and flag it here.
+  placeholder. I show it where the data says: the app has no way to know
+  the real location, and warning residents based on my guess would be
+  inventing details too. It should be fixed at the source.
 - All image URLs point to `images.example.com`, which doesn't exist, so every
   photo shows the "Photo unavailable" placeholder.
 - Several addresses are partial ("Ridge Rd", "1 Plaza Way"), so directions
@@ -129,15 +142,22 @@ problems are visible. Issues I noticed in the sample data:
 
 Target: WCAG 2.2 AA.
 
-- Skip link; landmarks and a logical heading order on every page; one
-  consistent, high-contrast focus outline (3px) everywhere.
+- Skip link; landmarks and a logical heading order on every page; a
+  consistent 3px focus outline on every control (on the map, a two-tone
+  version so it shows on any tile).
 - Every task works with a keyboard alone. Map markers are buttons with a
   descriptive name (e.g. "Prospect Park, Brooklyn, NY 11225. Show park
   summary."), open with Enter or Space, move focus into the popup, and
   Escape closes it and returns focus to where it came from. Leaflet doesn't
   do the last three on its own (`src/components/park-map.tsx`).
-- Search results are announced via a live region; the List/Map toggle uses
-  `aria-pressed`; touch targets are at least 44px.
+- After a page change, focus moves to the new page's heading; coming back
+  to the list puts focus on the park you opened.
+- The map itself is a named group with keyboard instructions (arrow keys
+  pan, +/- zoom).
+- Search results are announced via a live region (once typing pauses); the
+  List/Map toggle uses `aria-pressed`. The app's buttons and map markers are
+  at least 44×44px; Leaflet's zoom buttons (30px on touch screens) and the
+  popup close button (32px) meet WCAG 2.2's 24px minimum.
 - Color contrast is at least 4.5:1 for text in both color schemes; motion is
   reduced when the device asks for it; pages reflow without horizontal
   scrolling down to 320px (about 400% zoom).
@@ -146,21 +166,29 @@ Target: WCAG 2.2 AA.
 
 **Automated** (all run in CI):
 
-- 47 unit and component tests (Vitest + Testing Library): data
+- 49 unit and component tests (Vitest + Testing Library): data
   normalization for every missing/invalid case, search, formatting, the photo
   fallback and sparse park cards.
-- 65 browser tests (Playwright) against a production build, on a desktop
-  and a phone viewport: keyboard-only flows (list → details, markers with
-  Enter/Space/Escape, skip link), search, the 404 page, missing data on the
-  real sample parks, map tiles failing, the map code failing, and a
-  regression test for going Back to the map. External requests are stubbed,
-  so tests send no traffic to OpenStreetMap.
-- axe-core WCAG 2.2 AA scans of each page state in light and dark mode, plus
-  reflow checks at 320px.
+- 82 browser tests (Playwright; 79 run, 3 apply to one device only)
+  against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
+  Enter/Space/Escape, skip link, focus after navigation), search, the 404
+  page, missing data on the real sample parks, map tiles failing, the map
+  code failing, and regression tests for each bug below. External requests
+  are stubbed, so tests send no traffic to OpenStreetMap.
+- axe-core WCAG 2.2 AA scans of 7 page states (list, open popup, no search
+  results, full and sparse details, 404, and a selected park with the
+  map-tiles-failed notice), in light and dark mode, plus reflow checks at
+  320px.
 
 **Manual**: I used the app in a browser at phone and desktop sizes, in both
 color schemes, with mouse and keyboard only, and reviewed screenshots of each
-screen (`pnpm screenshots` regenerates them).
+screen (`pnpm screenshots` regenerates them; unlike the tests, it loads
+real map tiles, so run it by hand, occasionally).
+
+**Independent review**: two separate AI review passes, each without any
+context from the build, audited the code: one for accessibility (WCAG 2.2
+AA), one for correctness against this brief. I verified each finding before
+acting on it; two claims turned out to be wrong or already fixed.
 
 **Problems the checks found** (each fixed and, where possible, covered by a
 test):
@@ -181,6 +209,19 @@ test):
    because react-leaflet keeps popup content mounted after the first open.
 5. **Escape didn't close popups** while focus was inside them (Leaflet only
    listens when the map itself is focused).
+6. **Going Back replayed the last "Show on map"**, jumping the map away
+   from where you left it: React re-runs effects when Next.js re-shows a
+   hidden page. Requests are now handled exactly once.
+7. **"Show on map" could leave the park off-center**: opening the popup
+   during the pan animation stopped the pan. A trace of the map's transforms
+   showed it; the popup now opens when the map arrives.
+8. **Pins were drawn about 4px above their location**: Leaflet's stylesheet
+   overrode the pin's positioning. Now tested to the pixel.
+9. **Focus was stranded after navigating** (Next.js leaves it to the app):
+   focus now moves to the new page's heading, and back to the park you opened
+   when you return.
+10. **The map's own focus ring was clipped, and invisible in dark mode** over
+    the (always light) map tiles; the map now uses a two-tone ring.
 
 **Review**: _[Your own review notes go here — e.g. the code you read most
 closely and how you checked it.]_
@@ -191,16 +232,21 @@ closely and how you checked it.]_
   marker is a 44×44px target, and every marker action is also available from
   the list (WCAG 2.5.8's "equivalent control" exception), so the overlap is
   accepted in the accessibility tests for markers only.
-- After you open a park and go Back, that park stays highlighted on the map
-  and in the list. This is deliberate ("you were here"), but it's a judgment
-  call worth testing with residents.
+- If a park's popup was open when you left, that park is still highlighted
+  (and focused) when you come Back. I kept this as a "you were here" cue, but
+  it's a judgment call worth testing with residents.
+- Leaflet's zoom buttons come after the markers in Tab order. The list is the
+  primary keyboard path, so I didn't fight Leaflet's DOM order.
+- Only tested in Chromium (at desktop and phone sizes). Screen reader output
+  was checked through the accessibility tree, not with VoiceOver or NVDA.
 - The OSM tile servers' usage policy rules them out for production (see
   Decisions).
 - The Geist font is fetched from Google Fonts at build time, so
   `pnpm build` needs internet access.
 - If Next.js discards the hidden home page after many navigations, the Leaflet
-  map behind it is not explicitly destroyed (a small memory leak in long
-  sessions; see the comment in `stable-map-container.tsx`).
+  map behind it is never explicitly destroyed; it holds no global listeners,
+  so it should simply be garbage-collected (see the comment in
+  `stable-map-container.tsx`).
 
 ## Time spent
 
@@ -216,7 +262,8 @@ _[Fill in.]_
 3. **Usability testing with residents**, including screen reader users
    (VoiceOver, NVDA) and people on low-end phones — automated checks don't
    replace this.
-4. **Hosting and operations**: deploy as a static site/CDN, error monitoring
+4. **Hosting and operations**: deploy to a Node host (or Vercel) behind a
+   CDN, error monitoring
    (the error boundaries already log), uptime checks, and a privacy-friendly
    analytics decision.
 5. **Content and language**: plain-language review, translations for the
@@ -234,7 +281,13 @@ src/components/park-explorer.tsx  search, List/Map toggle, shared selection
 src/components/park-list.tsx    park cards
 src/components/park-map.tsx     Leaflet map, accessible markers and popups
 src/components/stable-map-container.tsx  Leaflet map that survives navigation
-e2e/                            Playwright tests (incl. accessibility)
+src/components/render-when-visible.tsx   defers the map until it's shown
+src/components/map-error-boundary.tsx    keeps the list working if the map fails
+src/components/park-photos.tsx  photos with "Photo unavailable" fallbacks
+src/components/route-focus.tsx  focus management after navigation
+src/app/not-found.tsx, error.tsx, global-error.tsx  404 and error pages
+e2e/                            Playwright tests (incl. accessibility, regressions)
+scripts/screenshots.spec.ts     regenerates docs/screenshots
 ```
 
 ## AI use

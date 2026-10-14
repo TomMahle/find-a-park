@@ -200,7 +200,7 @@ describe("normalizeParks", () => {
     ["acreage", 0],
     ["acreage", -3],
     ["acreage", Number.POSITIVE_INFINITY],
-  ])("drops an invalid %s of %s", (field, value) => {
+  ])("drops an invalid %s value of %j", (field, value) => {
     const { park, warnings } = normalizeOne({ ...minimal, [field]: value });
     expect(park[field as "rating" | "acreage"]).toBeNull();
     expect(warnings).toHaveLength(1);

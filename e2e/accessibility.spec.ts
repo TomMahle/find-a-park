@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, openMapView, test } from "./fixtures";
+import { expect, openMapView, test, TILE_URL_PATTERN } from "./fixtures";
 
 /**
  * Automated WCAG 2.2 AA checks. These catch a useful subset of problems
@@ -109,4 +109,28 @@ test.describe("reflow at 320 CSS pixels (WCAG 1.4.10, ~400% zoom)", () => {
       expect(overflow).toBeLessThanOrEqual(0);
     });
   }
+});
+
+test.describe("failure and selection states", () => {
+  test("home page with a selected park and the tile-failure notice", async ({
+    page,
+    isMobile,
+  }) => {
+    await page.unroute(TILE_URL_PATTERN);
+    await page.route(TILE_URL_PATTERN, (route) => route.abort());
+    await page.goto("/");
+    await page
+      .getByRole("button", { name: "Show on map: Prospect Park" })
+      .click();
+    await expect(
+      page.getByText("The map background couldn’t load."),
+    ).toBeVisible();
+    // Scan the map with its notice, then (on phones) the list, whose card for
+    // the selected park is highlighted.
+    await expectNoViolations(page);
+    if (isMobile) {
+      await page.getByRole("button", { name: "List", exact: true }).click();
+      await expectNoViolations(page);
+    }
+  });
 });
