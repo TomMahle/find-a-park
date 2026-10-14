@@ -22,6 +22,9 @@ const ParkMap = dynamic(() => import("./park-map"), {
 
 type View = "list" | "map";
 
+/** Matches Tailwind's `lg` breakpoint, where list and map sit side by side. */
+const SIDE_BY_SIDE_QUERY = "(min-width: 64rem)";
+
 /**
  * The list and the map side by side (or one at a time on small screens),
  * with a shared search and a shared selection: opening a marker highlights
@@ -58,6 +61,18 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
     setView("map");
     setShowRequest((previous) => ({
       parkId,
+      mode: "open",
+      nonce: (previous?.nonce ?? 0) + 1,
+    }));
+  }, []);
+
+  // Clicking a card centers its park on the map, but only where the map is
+  // next to the list; on phones a tap on a card shouldn't switch views.
+  const centerOnMap = useCallback((parkId: string) => {
+    if (!window.matchMedia(SIDE_BY_SIDE_QUERY).matches) return;
+    setShowRequest((previous) => ({
+      parkId,
+      mode: "center",
       nonce: (previous?.nonce ?? 0) + 1,
     }));
   }, []);
@@ -104,6 +119,7 @@ export function ParkExplorer({ parks }: { parks: Park[] }) {
             parks={results}
             selectedId={selectedId}
             onShowOnMap={showOnMap}
+            onCenterOnMap={centerOnMap}
           />
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-border p-6">

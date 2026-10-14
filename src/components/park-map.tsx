@@ -18,6 +18,12 @@ const POPUP_MAX_WIDTH = 220;
 
 export type ShowOnMapRequest = {
   parkId: string;
+  /**
+   * "open": zoom in if needed and open the park's popup ("Show on map").
+   * "center": just pan to it at the current zoom and select it (clicking a
+   * list card), without opening a popup or moving focus.
+   */
+  mode: "open" | "center";
   /** Changes on every request so asking for the same park twice still works. */
   nonce: number;
 };
@@ -45,6 +51,9 @@ export default function ParkMap({
   const [tilesFailed, setTilesFailed] = useState(false);
   const anyTileLoaded = useRef(false);
   const reducedMotion = usePrefersReducedMotion();
+  // Set while ShowOnMap closes a popup itself, so focus isn't pulled back to
+  // whatever opened that popup.
+  const closingQuietlyRef = useRef(false);
 
   return (
     <div className="park-map relative h-full w-full">
@@ -81,7 +90,7 @@ export default function ParkMap({
         />
         <InvalidateSizeOnResize />
         <MapKeyboardSupport instructionsId={instructionsId} />
-        <PopupFocusManager />
+        <PopupFocusManager closingQuietlyRef={closingQuietlyRef} />
         {parks.map((park) => (
           <ParkMarker
             key={park.id}
@@ -96,6 +105,8 @@ export default function ParkMap({
           request={showRequest}
           parks={parks}
           reducedMotion={reducedMotion}
+          onSelect={onSelect}
+          closingQuietlyRef={closingQuietlyRef}
         />
       </StableMapContainer>
       {tilesFailed && (
@@ -226,15 +237,19 @@ function ParkPopup({ park }: { park: ParkWithCoordinates }) {
   );
 }
 
-/** Pans to a park and opens its popup when the list asks for it. */
+/** Pans to a park (and maybe opens its popup) when the list asks for it. */
 function ShowOnMap({
   request,
   parks,
   reducedMotion,
+  onSelect,
+  closingQuietlyRef,
 }: {
   request: ShowOnMapRequest | null;
   parks: ParkWithCoordinates[];
   reducedMotion: boolean;
+  onSelect: (parkId: string | null) => void;
+  closingQuietlyRef: React.RefObject<boolean>;
 }) {
   const map = useMap();
   const handledNonce = useRef<number | null>(null);
@@ -253,6 +268,20 @@ function ShowOnMap({
     // The map may have just been revealed (mobile List/Map toggle) and still
     // think it is 0x0, which would break centering.
     map.invalidateSize();
+
+    if (request.mode === "center") {
+      // Another park's popup would contradict the new selection, so close it
+      // (its popupclose clears the selection; set it again after).
+      closingQuietlyRef.current = true;
+      map.closePopup();
+      closingQuietlyRef.current = false;
+      onSelect(park.id);
+      map.panTo([park.coordinates.lat, park.coordinates.lng], {
+        animate: !reducedMotion,
+      });
+      return;
+    }
+
     // Open the popup only once the map has arrived. Opening it during the
     // animation stops the pan partway (popup auto-pan and moving focus into
     // the popup both interrupt it), leaving the park off-center. Leaflet
@@ -327,7 +356,11 @@ function MapKeyboardSupport({ instructionsId }: { instructionsId: string }) {
  * whatever opened it (a marker or a "Show on map" button) when it closes, so
  * keyboard users never lose their place.
  */
-function PopupFocusManager() {
+function PopupFocusManager({
+  closingQuietlyRef,
+}: {
+  closingQuietlyRef: React.RefObject<boolean>;
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -359,7 +392,7 @@ function PopupFocusManager() {
         (container?.contains(active) ?? false);
       const returnTo = opener;
       opener = null;
-      if (!focusWasInPopup) return;
+      if (!focusWasInPopup || closingQuietlyRef.current) return;
 
       // Prefer the element that opened the popup. If it is gone or hidden
       // (the mobile list is hidden while the map shows), use the marker.
@@ -381,7 +414,7 @@ function PopupFocusManager() {
       map.off("popupopen", onOpen);
       map.off("popupclose", onClose);
     };
-  }, [map]);
+  }, [map, closingQuietlyRef]);
 
   return null;
 }

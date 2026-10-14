@@ -14,9 +14,16 @@ type ParkListProps = {
   parks: Park[];
   selectedId: string | null;
   onShowOnMap: (parkId: string) => void;
+  /** Clicking a card (outside its links and buttons) centers it on the map. */
+  onCenterOnMap: (parkId: string) => void;
 };
 
-export function ParkList({ parks, selectedId, onShowOnMap }: ParkListProps) {
+export function ParkList({
+  parks,
+  selectedId,
+  onShowOnMap,
+  onCenterOnMap,
+}: ParkListProps) {
   return (
     // role="list" because Safari drops list semantics from unstyled lists.
     <ul role="list" className="flex flex-col gap-3" aria-label="Parks">
@@ -26,6 +33,7 @@ export function ParkList({ parks, selectedId, onShowOnMap }: ParkListProps) {
             park={park}
             selected={park.id === selectedId}
             onShowOnMap={onShowOnMap}
+            onCenterOnMap={onCenterOnMap}
           />
         </li>
       ))}
@@ -37,10 +45,12 @@ function ParkCard({
   park,
   selected,
   onShowOnMap,
+  onCenterOnMap,
 }: {
   park: Park;
   selected: boolean;
   onShowOnMap: (parkId: string) => void;
+  onCenterOnMap: (parkId: string) => void;
 }) {
   const headingId = `park-card-${park.id}`;
   const amenitiesId = `park-card-${park.id}-amenities`;
@@ -54,11 +64,18 @@ function ParkCard({
     : park.amenities.slice(0, CARD_AMENITY_LIMIT);
 
   return (
+    // A mouse shortcut only: the card's "Show on map" button does the same
+    // for keyboard and screen reader users, so the card itself isn't a control.
     <article
       aria-labelledby={headingId}
       data-park-card={park.id}
+      onClick={(event) => {
+        const onControl = (event.target as Element).closest("a, button");
+        if (park.coordinates && !onControl) onCenterOnMap(park.id);
+      }}
       className={cn(
         "flex flex-col gap-2 rounded-lg border bg-surface p-4 transition-colors",
+        park.coordinates && "lg:cursor-pointer",
         selected
           ? "border-accent bg-accent-soft ring-1 ring-accent"
           : "border-border",

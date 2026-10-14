@@ -2,7 +2,26 @@
  * Regenerates the screenshots in docs/screenshots (used by the README).
  * Run with `pnpm screenshots`. Not part of the test suite.
  */
+import type { Page } from "@playwright/test";
 import { expect, test } from "../e2e/fixtures";
+
+/** Waits until every visible map tile has loaded and finished fading in. */
+async function waitForMapToSettle(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await page.waitForFunction(() => {
+    const tiles = [...document.querySelectorAll<HTMLElement>(".leaflet-tile")];
+    return (
+      tiles.length > 0 &&
+      tiles.every(
+        (tile) =>
+          tile.classList.contains("leaflet-tile-loaded") &&
+          getComputedStyle(tile).opacity === "1",
+      ) &&
+      !document.querySelector(".leaflet-zoom-anim")
+    );
+  });
+  await page.waitForTimeout(300); // one more beat for marker and popup paint
+}
 
 const OUT = "docs/screenshots";
 
@@ -31,7 +50,7 @@ for (const [device, viewport] of Object.entries(sizes)) {
         await expect(
           page.getByRole("link", { name: /View park details/ }),
         ).toBeVisible();
-        await page.waitForTimeout(400); // let the pan animation settle
+        await waitForMapToSettle(page);
         await page.screenshot({
           path: `${OUT}/${device}-${colorScheme}-map.png`,
         });
@@ -42,7 +61,7 @@ for (const [device, viewport] of Object.entries(sizes)) {
         await expect(
           page.getByRole("img", { name: /Prospect Park Boathouse/ }),
         ).toBeVisible();
-        await page.waitForLoadState("networkidle");
+        await waitForMapToSettle(page); // the location preview
         await page.screenshot({
           path: `${OUT}/${device}-${colorScheme}-details.png`,
           fullPage: true,

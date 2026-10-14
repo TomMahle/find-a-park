@@ -30,12 +30,13 @@ const sparse: Park = {
   rating: null,
 };
 
-function renderList(onShowOnMap = vi.fn()) {
+function renderList(onShowOnMap = vi.fn(), onCenterOnMap = vi.fn()) {
   render(
     <ParkList
       parks={[full, sparse]}
       selectedId={null}
       onShowOnMap={onShowOnMap}
+      onCenterOnMap={onCenterOnMap}
     />,
   );
   return {
@@ -93,6 +94,28 @@ describe("ParkList", () => {
       within(sparse).queryByRole("list", { name: "Amenities" }),
     ).toBeNull();
     expect(within(sparse).queryByRole("button")).toBeNull();
+  });
+
+  it("centers a park when its card is clicked, but not via its controls", async () => {
+    const onShowOnMap = vi.fn();
+    const onCenterOnMap = vi.fn();
+    const { full, sparse } = renderList(onShowOnMap, onCenterOnMap);
+
+    await userEvent.click(within(full).getByText("1 Main St"));
+    expect(onCenterOnMap).toHaveBeenCalledWith("full-park");
+
+    onCenterOnMap.mockClear();
+    await userEvent.click(
+      within(full).getByRole("button", { name: /Show on map/ }),
+    );
+    await userEvent.click(
+      within(full).getByRole("button", { name: /more amenities/ }),
+    );
+    expect(onCenterOnMap).not.toHaveBeenCalled();
+
+    // A park with no location has nothing to center on.
+    await userEvent.click(within(sparse).getByText("Address not listed"));
+    expect(onCenterOnMap).not.toHaveBeenCalled();
   });
 
   it("asks to show the park on the map", async () => {

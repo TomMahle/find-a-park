@@ -1,0 +1,5 @@
+Haven't used https://www.npmjs.com/package/@axe-core/playwright before but great tool! recommended direct from playwright: https://playwright.dev/docs/accessibility-testing 14 million weekly downloads and 700+ stars speaks for itself. Love the ethos in the readme, too!
+sanity checking removing the list's role and label, passes without role, but not without label, but <ul> semantically is a list so no worries there. Seems to work the way one would expect.
+
+
+

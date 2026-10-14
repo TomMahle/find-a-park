@@ -48,7 +48,9 @@ it); locally it reuses a server already running on that port. CI
   name links to its details page.
 - **Map** (Leaflet + OpenStreetMap tiles) with a marker per park. Selecting a
   marker opens a summary with a link to the park's details, and highlights
-  the park in the list. "Show on map" on a list card does the reverse.
+  the park in the list. "Show on map" on a list card does the reverse, and
+  on wide screens clicking a card centers its park on the map (keeping your
+  zoom).
 - **Park details** page for each park: description, amenities, photos,
   hours, address, size, rating and a "Get directions" link (Google Maps, no
   key needed). Every page has its own URL and title.
@@ -200,10 +202,10 @@ Target: WCAG 2.2 AA.
 
 **Automated** (all run in CI):
 
-- 60 unit and component tests (Vitest + Testing Library): data
+- 61 unit and component tests (Vitest + Testing Library): data
   normalization for every missing/invalid case, search, formatting, amenity
   ordering, when fallback photos may and may not appear, and park cards.
-- 88 browser tests (Playwright; 85 run, 3 apply to one device only)
+- 90 browser tests (Playwright; 86 run, 4 apply to one device only)
   against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
   Enter/Space/Escape, skip link, focus after navigation), search, the 404
   page, missing data on the real sample parks, map tiles failing, the map

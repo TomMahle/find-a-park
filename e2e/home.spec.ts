@@ -243,5 +243,9 @@ test.describe("when the map can't load", () => {
       await page.getByRole("link", { name: "Prospect Park" }).click();
       await expect(page).toHaveURL(/\/parks\/prospect-park$/);
     }
+    // Stop intercepting before the page closes; otherwise an in-flight
+    // handler can throw "Response has been disposed", which Playwright then
+    // reports against whichever test runs next in this worker.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
   });
 });

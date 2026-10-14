@@ -152,3 +152,38 @@ test("“Show on map” centers the park even when the map is already zoomed in"
   expect(Math.abs(tipX - (map.x + map.width / 2))).toBeLessThan(5);
   expect(Math.abs(tipY - (map.y + map.height / 2))).toBeLessThan(5);
 });
+
+test("clicking a park's card centers it on the map at the current zoom", async ({
+  page,
+}, testInfo) => {
+  test.skip(isMobile(testInfo.project.name), "list and map side by side only");
+  await page.goto("/");
+  await expect(page.locator(".park-marker")).toHaveCount(12);
+  const zoom = () =>
+    page
+      .locator(".leaflet-tile")
+      .first()
+      .getAttribute("src")
+      .then((src) => src?.split("/").at(-3));
+  const zoomBefore = await zoom();
+
+  // Click the card itself (its address), not its links or buttons.
+  await page
+    .locator('[data-park-card="willow-creek-wetlands"]')
+    .getByText("Creek Rd")
+    .click();
+  await expect(
+    page.locator('[data-park-card="willow-creek-wetlands"]'),
+  ).toHaveAttribute("class", /border-accent/);
+  await expect(page.locator(".park-marker--selected")).toHaveCount(1);
+  await expect(page.locator(".leaflet-popup")).toHaveCount(0);
+  await page.waitForTimeout(600); // let the pan finish
+
+  const map = (await page.locator(".leaflet-container").boundingBox())!;
+  const pin = (await page
+    .locator('.park-marker[data-park-id="willow-creek-wetlands"]')
+    .boundingBox())!;
+  expect(Math.abs(pin.x + 22 - (map.x + map.width / 2))).toBeLessThan(5);
+  expect(Math.abs(pin.y + 42 - (map.y + map.height / 2))).toBeLessThan(5);
+  expect(await zoom()).toBe(zoomBefore);
+});
