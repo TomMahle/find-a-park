@@ -1,8 +1,8 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
-// A 1x1 transparent PNG, served in place of real map tiles.
+// A 1x1 fully transparent PNG, served in place of real map tiles.
 const BLANK_TILE = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=",
   "base64",
 );
 
@@ -13,13 +13,17 @@ export const TILE_URL_PATTERN = "https://tile.openstreetmap.org/**";
  * tile servers must not receive automated traffic, and tests shouldn't
  * depend on them), and the sample data's placeholder image host is blocked,
  * as it is unreachable in real life too.
+ *
+ * E2E_REAL_TILES=1 loads real tiles instead; only `pnpm screenshots` uses it.
  */
 export const test = base.extend<{ stubExternalRequests: void }>({
   stubExternalRequests: [
     async ({ page }, use) => {
-      await page.route(TILE_URL_PATTERN, (route) =>
-        route.fulfill({ contentType: "image/png", body: BLANK_TILE }),
-      );
+      if (!process.env.E2E_REAL_TILES) {
+        await page.route(TILE_URL_PATTERN, (route) =>
+          route.fulfill({ contentType: "image/png", body: BLANK_TILE }),
+        );
+      }
       await page.route("https://images.example.com/**", (route) =>
         route.abort(),
       );

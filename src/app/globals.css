@@ -148,6 +148,17 @@
   margin: 0;
 }
 
+/* Leaflet colors every map link #0078A8, which is unreadable on the dark
+   popup (about 3.5:1). axe can't measure contrast over map tiles, so this
+   was caught by eye, not by the automated scan. */
+.park-map .leaflet-popup-content a {
+  color: var(--accent);
+}
+
+.park-map .leaflet-popup-content a:hover {
+  color: var(--accent-hover);
+}
+
 .park-map .leaflet-container a.leaflet-popup-close-button {
   width: 32px;
   height: 32px;
