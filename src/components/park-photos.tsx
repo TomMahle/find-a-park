@@ -25,8 +25,12 @@ export function ParkPhotos({
   fallback: readonly FallbackPhoto[];
 }) {
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
-  const markFailed = (src: string) =>
+  const markFailed = (src: string) => {
+    // Visible to developers, so broken photo URLs in the data get noticed
+    // even when a fallback covers for them.
+    console.warn(`[photos] Couldn't load ${src} (${parkName})`);
     setFailed((previous) => new Set(previous).add(src));
+  };
 
   const listedAllFailed =
     images.length > 0 && images.every((src) => failed.has(src));

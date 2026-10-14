@@ -7,22 +7,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { amenityLabel } from "@/lib/parks/amenities";
 import type { ParkWithCoordinates } from "@/lib/parks/types";
+import { TILE_ATTRIBUTION, TILE_URL } from "./map-config";
+import { markerIcon } from "./map-marker";
 import { StableMapContainer } from "./stable-map-container";
-
-/**
- * Tiles come from the OpenStreetMap Foundation's public servers by default,
- * which is fine for local development and demos but not allowed for
- * production traffic. Point these at a tile provider before public launch.
- * (NEXT_PUBLIC_ values are read at build time.)
- */
-const CUSTOM_TILE_URL = process.env.NEXT_PUBLIC_MAP_TILE_URL || undefined;
-const TILE_URL =
-  CUSTOM_TILE_URL ?? "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const TILE_ATTRIBUTION =
-  process.env.NEXT_PUBLIC_MAP_TILE_ATTRIBUTION ||
-  (CUSTOM_TILE_URL
-    ? ""
-    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
 
 /** Zoom used when jumping to a single park from the list. */
 const PARK_ZOOM = 15;
@@ -124,21 +111,6 @@ export default function ParkMap({
       )}
     </div>
   );
-}
-
-const PIN_SVG = `<svg viewBox="0 0 30 40" aria-hidden="true" focusable="false"><path fill="currentColor" stroke="#fff" stroke-width="2" d="M15 1.5C7.5 1.5 1.5 7.3 1.5 14.6c0 9.6 11.6 22 12.1 22.6a1.9 1.9 0 0 0 2.8 0c.5-.6 12.1-13 12.1-22.6C28.5 7.3 22.5 1.5 15 1.5Z"/><circle cx="15" cy="14.5" r="5" fill="#fff"/></svg>`;
-
-function markerIcon(selected: boolean) {
-  return L.divIcon({
-    html: PIN_SVG,
-    className: selected ? "park-marker park-marker--selected" : "park-marker",
-    // A comfortable 44x44 target (WCAG 2.5.5; AA's 2.5.8 needs only 24px);
-    // the pin is drawn bottom-centered in it
-    // (see .park-marker in globals.css), so its tip is at (22, 42).
-    iconSize: [44, 44],
-    iconAnchor: [22, 42],
-    popupAnchor: [0, -40],
-  });
 }
 
 function ParkMarker({

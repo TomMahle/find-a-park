@@ -45,9 +45,13 @@ test.describe("park details page", () => {
     await expect(visit.getByText("Not listed")).toHaveCount(1);
     await expect(visit).toContainText("Address");
 
-    // No rating and no photos in the data.
+    // No rating and no photos in the data (and no fallback): the photos
+    // section is left out rather than shown empty.
     await page.goto("/parks/cedar-hill-nature-preserve");
-    await expect(page.getByText("No photos available.")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "About" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Photos" })).toHaveCount(0);
     await expect(
       page.getByRole("region", { name: "Plan your visit" }),
     ).not.toContainText("out of 5");
@@ -94,6 +98,23 @@ test.describe("park details page", () => {
     ).toBeVisible();
     await expect(page.getByRole("img", { name: /Boathouse/ })).toHaveCount(0);
     await expect(page.getByText(/Wikimedia Commons/)).toHaveCount(0);
+  });
+
+  test("shows a still map of the park's location", async ({ page }) => {
+    await page.goto("/parks/lakeshore-point");
+    const visit = page.getByRole("region", { name: "Plan your visit" });
+    const preview = visit.getByRole("figure", {
+      name: /Map of Lakeshore Point’s listed location/,
+    });
+    await expect(preview).toBeVisible();
+    await expect(preview.locator(".park-marker")).toHaveCount(1);
+    // A picture, not a control: nothing in it takes keyboard focus.
+    await expect(
+      preview.locator("[tabindex]:not([tabindex='-1'])"),
+    ).toHaveCount(0);
+    await expect(
+      preview.getByRole("link", { name: "OpenStreetMap" }),
+    ).toBeVisible();
   });
 
   test("“All parks” returns to the list", async ({ page }) => {

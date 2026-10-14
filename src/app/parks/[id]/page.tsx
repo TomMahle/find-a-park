@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ParkLocationMap } from "@/components/park-location-map";
 import { ParkPhotos } from "@/components/park-photos";
 import { getPark, getParks } from "@/lib/parks/data";
 import { fallbackPhotosFor } from "@/lib/parks/fallback-photos";
@@ -82,6 +83,12 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
               value={park.rating !== null ? formatRating(park.rating) : null}
             />
           </dl>
+          {park.coordinates && (
+            <ParkLocationMap
+              parkName={park.name}
+              coordinates={park.coordinates}
+            />
+          )}
           {park.coordinates ? (
             <a
               href={directionsUrl(park.coordinates.lat, park.coordinates.lng)}
@@ -127,17 +134,19 @@ export default async function ParkPage({ params }: PageProps<"/parks/[id]">) {
             )}
           </Section>
 
-          <Section title="Photos">
-            {park.images.length > 0 || fallbackPhotos.length > 0 ? (
+          {/* With no listed photos and no fallback there's nothing to show,
+              so the section is left out. Listed photos that fail to load
+              still show (as "Photo unavailable"), so broken data stays
+              visible. */}
+          {(park.images.length > 0 || fallbackPhotos.length > 0) && (
+            <Section title="Photos">
               <ParkPhotos
                 parkName={park.name}
                 images={park.images}
                 fallback={fallbackPhotos}
               />
-            ) : (
-              <NotListed>No photos available.</NotListed>
-            )}
-          </Section>
+            </Section>
+          )}
         </div>
       </div>
     </article>

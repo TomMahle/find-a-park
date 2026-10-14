@@ -52,6 +52,8 @@ it); locally it reuses a server already running on that port. CI
 - **Park details** page for each park: description, amenities, photos,
   hours, address, size, rating and a "Get directions" link (Google Maps, no
   key needed). Every page has its own URL and title.
+- **Location preview** on each park's details page: a small, still map with
+  the park's pin, next to "Get directions".
 - **Fallback photos for real parks.** When a park's listed photos are
   missing or all fail to load, and it's a real park I could verify, openly
   licensed photos from Wikimedia Commons are shown instead, credited and
@@ -126,7 +128,7 @@ How missing or invalid values are handled (`src/lib/parks/normalize.ts`):
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Missing/blank/non-text description, hours or address                         | Details page: "Not listed" / "No description available." List card: "Address not listed"; missing hours, size or rating are simply left out of the card       |
 | Missing or invalid coordinates (incl. 0,0)                                   | Park stays in the list, which says it isn't on the map; the details page says directions aren't available                                                     |
-| Empty or missing amenities/images                                            | "No amenities listed." / "No photos available."                                                                                                               |
+| Empty or missing amenities / images                                          | "No amenities listed." / the Photos section is left out (unless a fallback applies)                                                                           |
 | Amenity with no letters or digits (e.g. `"-"`)                               | Dropped                                                                                                                                                       |
 | Image URL that isn't http(s), or fails to load                               | Dropped / replaced with a "Photo unavailable" tile; if _all_ fail (or none are listed) and the park is a verified real park, credited fallback photos instead |
 | Rating that isn't a number from 0 to 5; acreage that isn't a positive number | Treated as missing                                                                                                                                            |
@@ -157,6 +159,11 @@ match, so a reused id can't show the wrong park. Photos are CC BY-SA 4.0
 from Wikimedia Commons, linked rather than copied, with the required credit
 under each.
 
+Broken photo links are never hidden: a listed photo that fails to load shows
+as "Photo unavailable" (or, when a fallback is used, the note says the
+listing's photos couldn't be loaded), and each failure is logged to the
+browser console so bad URLs in the data get noticed.
+
 - Several addresses are partial ("Ridge Rd", "1 Plaza Way"), so directions
   use coordinates instead of addresses.
 - Ratings have no stated source or scale; I assume 0–5 and label them only
@@ -176,6 +183,9 @@ Target: WCAG 2.2 AA.
   do the last three on its own (`src/components/park-map.tsx`).
 - After a page change, focus moves to the new page's heading; coming back
   to the list puts focus on the park you opened.
+- The details page's location preview is decorative for assistive tech
+  (hidden, not focusable): the address and directions link carry the same
+  information, and a caption describes it.
 - The map itself is a named group with keyboard instructions (arrow keys
   pan, +/- zoom).
 - Search results are announced via a live region (once typing pauses); the
@@ -193,7 +203,7 @@ Target: WCAG 2.2 AA.
 - 60 unit and component tests (Vitest + Testing Library): data
   normalization for every missing/invalid case, search, formatting, amenity
   ordering, when fallback photos may and may not appear, and park cards.
-- 86 browser tests (Playwright; 83 run, 3 apply to one device only)
+- 88 browser tests (Playwright; 85 run, 3 apply to one device only)
   against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
   Enter/Space/Escape, skip link, focus after navigation), search, the 404
   page, missing data on the real sample parks, map tiles failing, the map
@@ -311,6 +321,7 @@ src/components/stable-map-container.tsx  Leaflet map that survives navigation
 src/components/render-when-visible.tsx   defers the map until it's shown
 src/components/map-error-boundary.tsx    keeps the list working if the map fails
 src/components/park-photos.tsx  listed photos, placeholders, and the fallback-photo rule
+src/components/park-location-map.tsx  still location preview on the details page
 src/components/route-focus.tsx  focus management after navigation
 src/app/not-found.tsx, error.tsx, global-error.tsx  404 and error pages
 e2e/                            Playwright tests (incl. accessibility, regressions)

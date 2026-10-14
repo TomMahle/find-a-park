@@ -144,6 +144,11 @@
   transform: scale(1.12);
 }
 
+/* The details page's location preview is a picture, not a control. */
+.park-map--static .park-marker {
+  cursor: default;
+}
+
 .park-map .park-marker--selected {
   color: var(--marker-selected);
   /* Leaflet sets marker z-index inline, from latitude. */
