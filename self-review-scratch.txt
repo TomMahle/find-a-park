@@ -2,4 +2,22 @@ Haven't used https://www.npmjs.com/package/@axe-core/playwright before but great
 sanity checking removing the list's role and label, passes without role, but not without label, but <ul> semantically is a list so no worries there. Seems to work the way one would expect.
 
 
+25 minutes real human time this iteration.
 
+skipped tests normalize skipped tests, even when the test definition is unnecessary.
+
+keyboard navigation is NICE!
+
+REVIEW: Checked:
+running app
+tests
+package.json
+documentation
+app code
+in that order
+
+spot checked attribution of inserted photos
+love what we've got doing with the media-queries for reduced motion. Don't have time to test them
+I would definitely use explicitly open source icons in a real app as it's way too big a risk it'd end up being byte-identical to some litigious entity's IP.
+Zod, not hand-normalization is the better choice if this was a production app expected to be extended in the future
+pre-prod-deployment needs: a place to deploy, review by real stakeholders, find/create a 'real data' source, might as well have fable do a security analysis with how cheap that is, if we're handing this off to a client with engineers or another situation where I won't be around, do a knowledge transfer to maintainers and answer their questions.

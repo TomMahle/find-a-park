@@ -2,7 +2,7 @@
 > unattended overnight build (about 22:05 on 2026-10-13), for me to read in
 > the morning. They were originally kept outside the repo, as the text below
 > says; they're included here unedited apart from this preface (and automatic
-> whitespace formatting), so details
+> whitespace formatting... and [nots from Tom:]), so details
 > like test counts and "not fixed" items reflect that moment. Later changes
 > are in the git history and the README.
 
@@ -64,6 +64,8 @@ so they don't end up in the zip.
 
 ## Bugs found, and how (good material for "how did you check the AI's work")
 
+[note from Tom: I did not do this! :D]
+
 | Bug                                                                          | Found by                                                           |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Map crashed after visiting a park and pressing Back (`<Activity>`)           | Docs agent warned, I confirmed in the browser                      |
@@ -85,6 +87,7 @@ so they don't end up in the zip.
 | README overclaimed (test counts, 44px targets, "static", CI coverage)        | Fresh-clone README agent                                           |
 
 Reviewer claims I checked and found **wrong or overstated**:
+[note from Tom: The agents arguing is hilarious! :D]
 
 - "The pin is 7px left of its location": it was centered horizontally; only
   the vertical offset was real.

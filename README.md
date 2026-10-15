@@ -25,6 +25,23 @@ included with the submission. See also [AI use](#ai-use) and
 | ![List and map side by side](docs/screenshots/desktop-light-map.png)  | ![Park list on a phone](docs/screenshots/phone-light-list.png)    |
 | ![Park details, dark mode](docs/screenshots/desktop-dark-details.png) | ![Map on a phone, dark mode](docs/screenshots/phone-dark-map.png) |
 
+## Still to do before submitting
+
+What the brief asks for that isn't finished yet:
+
+- [ ] **Time spent** ([below](#time-spent)). The brief asks for 90 minutes to
+      2 hours and to "stop at two hours and tell us what you left
+      unfinished"; state the real total honestly, including the unattended
+      overnight build.
+- [ ] **AI use** ([below](#ai-use)): how I directed and checked the tools.
+- [ ] **Final transcript export.** The logs in [`transcripts/`](transcripts/)
+      were exported mid-session; re-export once the session is over so they
+      include the very end (see [`transcripts/README.md`](transcripts/README.md)).
+- [ ] **Zip the submission:** source code, this README and the logs, without
+      `node_modules`, `.next` or `test-results`.
+- [ ] **Prepare for the follow-up chat:** a demo, a code walkthrough, and
+      "a specific piece of code you reviewed closely" (see [My review](#my-review)).
+
 ## Run it
 
 Requirements: **Node 24** (pinned in `.nvmrc` and `.tool-versions`),
@@ -280,8 +297,38 @@ test):
 10. **The map's own focus ring was clipped, and invisible in dark mode** over
     the (always light) map tiles; the map now uses a two-tone ring.
 
-**Review**: _[Your own review notes go here — e.g. the code you read most
-closely and how you checked it.]_
+### My review
+
+My raw notes are in [`self-review-scratch.txt`](self-review-scratch.txt); this
+is a tidied version. I checked, in this order: the running app, the tests,
+`package.json`, the documentation, then the app code.
+
+What I checked and found:
+
+- **Accessibility testing.** `@axe-core/playwright` was new to me. It's what
+  [Playwright's own docs recommend](https://playwright.dev/docs/accessibility-testing),
+  it's widely used (about 14 million weekly downloads, 700+ GitHub stars), and
+  I like the ethos in its README.
+- **Do the tests catch regressions?** I sanity-checked by removing the park
+  list's `role` and its label. Without `role="list"` the tests still pass,
+  which is fine since a `<ul>` is already a list; without the label they
+  fail, as they should.
+- **Skipped tests.** The suite reported skipped tests, which normalizes
+  skips even when they aren't needed. They're now selected per layout by tag
+  instead, and that turned up a phone path that wasn't tested at all.
+- **Keyboard navigation** works really well.
+- **Photo attribution**: spot-checked the fallback photos' credits.
+- **Reduced motion**: I like the media-query approach, but didn't have time to
+  test it myself.
+
+What I'd do differently in a production app:
+
+- **Icons**: use an explicitly open-source icon set. Hand-drawn SVGs are too
+  big a risk of ending up byte-identical to someone else's IP.
+- **Validation**: Zod rather than hand-written normalization, for an app
+  that's expected to be extended.
+
+This review iteration took about 25 minutes of my own time.
 
 ## Known issues
 
@@ -307,7 +354,8 @@ closely and how you checked it.]_
 
 ## Time spent
 
-_[Fill in.]_
+_[Fill in the total.]_ Known so far: about 25 minutes of my own time for the
+final review iteration (see [My review](#my-review)).
 
 ## Next steps before public use
 
@@ -326,7 +374,12 @@ _[Fill in.]_
    analytics decision.
 5. **Content and language**: plain-language review, translations for the
    city's main languages, and "Open now" once hours are structured.
-6. **Security headers** (CSP allowing only the tile and image hosts).
+6. **Security**: headers (a CSP allowing only the tile and image hosts) and a
+   security review; an AI-assisted pass is cheap enough to always run.
+7. **Review by real stakeholders** before launch, alongside the resident
+   testing above.
+8. **Knowledge transfer**: if this is handed to a client's engineers or
+   another team, walk the maintainers through it and answer their questions.
 
 ## Project layout
 
@@ -349,6 +402,10 @@ src/components/route-focus.tsx  focus management after navigation
 src/app/not-found.tsx, error.tsx, global-error.tsx  404 and error pages
 e2e/                            Playwright tests (incl. accessibility, regressions)
 scripts/screenshots.spec.ts     regenerates docs/screenshots
+docs/brief.md                   the take-home brief (verbatim, as Markdown)
+docs/overnight-notes.md         Claude Code's handoff notes from the overnight build
+self-review-scratch.txt         my raw review notes (tidied in "My review")
+transcripts/                    full, unredacted AI conversation logs
 ```
 
 ## AI use
