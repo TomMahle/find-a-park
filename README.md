@@ -328,8 +328,6 @@ What I'd do differently in a production app:
 - **Validation**: Zod rather than hand-written normalization, for an app
   that's expected to be extended.
 
-This review iteration took about 25 minutes of my own time.
-
 ## Known issues
 
 - At the zoomed-out city view on a phone, a few nearby markers overlap. Each
