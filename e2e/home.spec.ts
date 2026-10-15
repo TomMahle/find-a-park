@@ -187,10 +187,7 @@ test.describe("home page", () => {
   });
 });
 
-test.describe("phone layout", () => {
-  // Playwright's built-in `isMobile` fixture is true for the phone project.
-  test.skip(({ isMobile: mobile }) => !mobile, "phones only");
-
+test.describe("phone layout", { tag: "@phone" }, () => {
   test("shows the list first and the map on request", async ({ page }) => {
     await page.goto("/");
     const list = page.getByRole("list", { name: "Parks" });

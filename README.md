@@ -205,7 +205,8 @@ Target: WCAG 2.2 AA.
 - 61 unit and component tests (Vitest + Testing Library): data
   normalization for every missing/invalid case, search, formatting, amenity
   ordering, when fallback photos may and may not appear, and park cards.
-- 90 browser tests (Playwright; 86 run, 4 apply to one device only)
+- 87 browser tests (Playwright; each runs on desktop and phone, except a
+  few tagged for one layout)
   against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
   Enter/Space/Escape, skip link, focus after navigation), search, the 404
   page, missing data on the real sample parks, map tiles failing, the map

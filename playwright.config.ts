@@ -15,9 +15,20 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
   },
+  // Every test runs on both projects unless tagged for one layout: @desktop
+  // (list and map side by side) or @phone (List/Map toggle). Filtering here,
+  // rather than skipping inside tests, keeps reports free of "skipped" noise.
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 7"] } },
+    {
+      name: "desktop",
+      use: { ...devices["Desktop Chrome"] },
+      grepInvert: /@phone/,
+    },
+    {
+      name: "mobile",
+      use: { ...devices["Pixel 7"] },
+      grepInvert: /@desktop/,
+    },
   ],
   webServer: {
     // Tests run against a production build, which is what residents get.
