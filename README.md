@@ -354,8 +354,10 @@ This review iteration took about 25 minutes of my own time.
 
 ## Time spent
 
-_[Fill in the total.]_ Known so far: about 25 minutes of my own time for the
-final review iteration (see [My review](#my-review)).
+About 30 minutes creating, about 90 minutes validating and finding small but
+impactful refinements with some submission preparation mixed in.
+
+Agent time closer to 3 hours as I let it run unattended a couple of times.
 
 ## Next steps before public use
 
@@ -410,5 +412,5 @@ transcripts/                    full, unredacted AI conversation logs
 
 ## AI use
 
-_[Fill in: tools used, how you directed and reviewed them. Full transcripts
-are included in the submission.]_
+I used Claude Code not Copilot, my usual daily driver at work, and some of the
+transcript shows me riding that gentle learning curve.
