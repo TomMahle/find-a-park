@@ -29,6 +29,10 @@ Optional, read at **build** time: `NEXT_PUBLIC_MAP_TILE_URL` and
 `NEXT_PUBLIC_MAP_TILE_ATTRIBUTION` point the map at another tile provider. If
 you set a custom URL, set its attribution too (it defaults to empty).
 
+If CSS changes don't show up (in `pnpm dev` or a local build), Turbopack's
+on-disk cache is serving a stale stylesheet; `pnpm clean` clears it. CI
+always builds from scratch, so it isn't affected.
+
 ### Checks
 
 ```bash

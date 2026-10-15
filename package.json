@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test:run",
     "prepare": "husky",
-    "screenshots": "E2E_REAL_MEDIA=1 playwright test --config playwright.screenshots.config.ts"
+    "screenshots": "E2E_REAL_MEDIA=1 playwright test --config playwright.screenshots.config.ts",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@react-leaflet/core": "3.0.0",

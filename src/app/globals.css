@@ -7,6 +7,15 @@
  * mode, a separate two-tone focus ring is used (see below).
  */
 :root {
+  /*
+   * "Fully round" corners. Browsers shrink any corner radius that won't fit
+   * to the largest that does, so a huge value always gives the roundest
+   * shape: a circle on a square box, a pill on a rectangle (unlike 50%,
+   * which turns rectangles into ellipses). Tailwind's rounded-full is the
+   * same trick.
+   */
+  --radius-fully-round: 9999px;
+
   --background: #f5f7f3;
   --surface: #ffffff;
   --surface-muted: #eef2ec;
@@ -126,7 +135,8 @@
      area, so its tip lands on the icon anchor. */
   display: grid;
   place-items: end center;
-  border-radius: 9999px;
+  /* A circular focus ring and hit area around the pin. */
+  border-radius: var(--radius-fully-round);
   cursor: pointer;
 }
 
