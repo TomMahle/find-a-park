@@ -1,4 +1,4 @@
-import { expect, marker, openMapView, test } from "./fixtures";
+import { expect, marker, openMapView, tabTo, test } from "./fixtures";
 
 /**
  * Regression tests for problems found in review. Each describes the bug it
@@ -21,7 +21,7 @@ test("going Back doesn't replay an earlier “Show on map”", async ({
   // Then pick a different park on the map and open it.
   await page.keyboard.press("Escape");
   await openMapView(page, testInfo.project.name);
-  await marker(page, "Riverside Commons").focus();
+  await tabTo(page, marker(page, "Riverside Commons"));
   await page.keyboard.press("Enter");
   // Selecting a marker smooth-scrolls the list to its card, which moves the
   // page for a moment; use the keyboard (the link has focus) not a click.
@@ -48,7 +48,7 @@ test("focus moves to the new page's heading, and back to the park on return", as
 }) => {
   await page.goto("/");
   const link = page.getByRole("link", { name: "Lakeshore Point" });
-  await link.focus();
+  await tabTo(page, link);
   await page.keyboard.press("Enter");
 
   await expect(page).toHaveURL(/\/parks\/lakeshore-point$/);

@@ -1,4 +1,9 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import {
+  test as base,
+  expect,
+  type Locator,
+  type Page,
+} from "@playwright/test";
 
 // A 1x1 fully transparent PNG, served in place of real map tiles.
 const BLANK_TILE = Buffer.from(
@@ -59,6 +64,25 @@ export function marker(page: Page, name: string) {
 }
 
 export const isMobile = (projectName: string) => projectName === "mobile";
+
+/**
+ * Presses Tab, as a keyboard user would, until `target` has focus. Tests use
+ * this instead of `locator.focus()`, which would skip proving the element is
+ * reachable from the keyboard at all.
+ */
+export async function tabTo(page: Page, target: Locator, maxPresses = 120) {
+  for (let presses = 0; presses < maxPresses; presses++) {
+    await page.keyboard.press("Tab");
+    if (
+      await target.evaluate((element) => element === document.activeElement)
+    ) {
+      return;
+    }
+  }
+  throw new Error(
+    `Not reachable with Tab within ${maxPresses} presses: ${target}`,
+  );
+}
 
 /** On phones the map sits behind the List/Map toggle. */
 export async function openMapView(page: Page, projectName: string) {

@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
-import { expect, openMapView, test, TILE_URL_PATTERN } from "./fixtures";
+import { expect, openMapView, tabTo, test, TILE_URL_PATTERN } from "./fixtures";
 
 /**
  * Automated WCAG 2.2 AA checks. These catch a useful subset of problems
@@ -66,9 +66,10 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.goto("/");
       await openMapView(page, testInfo.project.name);
       await expect(page.locator(".park-marker")).toHaveCount(12);
-      await page
-        .locator('.park-marker[data-map-marker="prospect-park"]')
-        .focus();
+      await tabTo(
+        page,
+        page.locator('.park-marker[data-map-marker="prospect-park"]'),
+      );
       await page.keyboard.press("Enter");
       await expect(
         page.getByRole("link", { name: /View park details/ }),

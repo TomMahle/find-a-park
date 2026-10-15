@@ -4,6 +4,7 @@ import {
   marker,
   openMapView,
   parkCard,
+  tabTo,
   test,
   TILE_URL_PATTERN,
 } from "./fixtures";
@@ -46,16 +47,7 @@ test.describe("home page", () => {
     const target = page.getByRole("link", { name: "Prospect Park" });
 
     // Tab from the top of the page, as a keyboard user would.
-    let reached = false;
-    for (let presses = 0; presses < 80 && !reached; presses++) {
-      await page.keyboard.press("Tab");
-      reached = await target.evaluate(
-        (link) => link === document.activeElement,
-      );
-    }
-    expect(reached, "Prospect Park link should be reachable with Tab").toBe(
-      true,
-    );
+    await tabTo(page, target);
 
     // The focus indicator is visible.
     const outline = await target.evaluate((link) => {
@@ -115,7 +107,7 @@ test.describe("home page", () => {
     await expect(page.locator(".park-marker")).toHaveCount(12);
 
     const pin = marker(page, "Central Plaza Green");
-    await pin.focus();
+    await tabTo(page, pin);
     await page.keyboard.press("Enter");
     const details = page.getByRole("link", {
       name: "View park details: Central Plaza Green",
@@ -170,7 +162,7 @@ test.describe("home page", () => {
     await expect(page.locator(".park-marker")).toHaveCount(12);
 
     // Leave through the map popup, which works in both layouts.
-    await marker(page, "Prospect Park").focus();
+    await tabTo(page, marker(page, "Prospect Park"));
     await page.keyboard.press("Enter");
     await page
       .getByRole("link", { name: "View park details: Prospect Park" })
