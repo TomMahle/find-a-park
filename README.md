@@ -16,31 +16,14 @@ I built it with Claude Code: I set up the project and directed the work,
 Claude Code built the first version overnight (including independent
 AI review passes), and I then reviewed it and asked for changes.
 [docs/overnight-notes.md](docs/overnight-notes.md) is the handoff Claude
-Code wrote at the end of that overnight run; the full transcripts are
-included with the submission. See also [AI use](#ai-use) and
+Code wrote at the end of that overnight run; the full transcripts are in
+[`transcripts/`](transcripts/). See also [AI use](#ai-use) and
 [Time spent](#time-spent).
 
 | Desktop                                                               | Phone                                                             |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | ![List and map side by side](docs/screenshots/desktop-light-map.png)  | ![Park list on a phone](docs/screenshots/phone-light-list.png)    |
 | ![Park details, dark mode](docs/screenshots/desktop-dark-details.png) | ![Map on a phone, dark mode](docs/screenshots/phone-dark-map.png) |
-
-## Still to do before submitting
-
-What the brief asks for that isn't finished yet:
-
-- [ ] **Time spent** ([below](#time-spent)). The brief asks for 90 minutes to
-      2 hours and to "stop at two hours and tell us what you left
-      unfinished"; state the real total honestly, including the unattended
-      overnight build.
-- [ ] **AI use** ([below](#ai-use)): how I directed and checked the tools.
-- [ ] **Final transcript export.** The logs in [`transcripts/`](transcripts/)
-      were exported mid-session; re-export once the session is over so they
-      include the very end (see [`transcripts/README.md`](transcripts/README.md)).
-- [ ] **Zip the submission:** source code, this README and the logs, without
-      `node_modules`, `.next` or `test-results`.
-- [ ] **Prepare for the follow-up chat:** a demo, a code walkthrough, and
-      "a specific piece of code you reviewed closely" (see [My review](#my-review)).
 
 ## Run it
 
@@ -242,10 +225,10 @@ Target: WCAG 2.2 AA.
 - 61 unit and component tests (Vitest + Testing Library): data
   normalization for every missing/invalid case, search, formatting, amenity
   ordering, when fallback photos may and may not appear, and park cards.
-- 87 browser tests (Playwright; each runs on desktop and phone, except a
-  few tagged for one layout)
-  against a production build, on a desktop and a phone viewport: keyboard-only flows (list → details, markers with
-  Enter/Space/Escape, skip link, focus after navigation), search, the 404
+- 87 browser tests (Playwright) against a production build, each run on a
+  desktop and a phone viewport except a few tagged for one layout:
+  keyboard-only flows (list → details, markers with Enter/Space/Escape,
+  skip link, focus after navigation), search, the 404
   page, missing data on the real sample parks, map tiles failing, the map
   code failing, and regression tests for each bug below. External requests
   are stubbed, so tests send no traffic to OpenStreetMap.
@@ -344,7 +327,7 @@ This review iteration took about 25 minutes of my own time.
 - Only tested in Chromium (at desktop and phone sizes). Screen reader output
   was checked through the accessibility tree, not with VoiceOver or NVDA.
 - The OSM tile servers' usage policy rules them out for production (see
-  Decisions).
+  [Important decisions](#important-decisions)).
 - The Geist font is fetched from Google Fonts at build time, so
   `pnpm build` needs internet access.
 - If Next.js discards the hidden home page after many navigations, the Leaflet
@@ -371,9 +354,8 @@ Agent time closer to 3 hours as I let it run unattended a couple of times.
    (VoiceOver, NVDA) and people on low-end phones — automated checks don't
    replace this.
 4. **Hosting and operations**: deploy to a Node host (or Vercel) behind a
-   CDN, error monitoring
-   (the error boundaries already log), uptime checks, and a privacy-friendly
-   analytics decision.
+   CDN, error monitoring (the error boundaries already log), uptime checks,
+   and a privacy-friendly analytics decision.
 5. **Content and language**: plain-language review, translations for the
    city's main languages, and "Open now" once hours are structured.
 6. **Security**: headers (a CSP allowing only the tile and image hosts) and a
@@ -408,9 +390,15 @@ docs/brief.md                   the take-home brief (verbatim, as Markdown)
 docs/overnight-notes.md         Claude Code's handoff notes from the overnight build
 self-review-scratch.txt         my raw review notes (tidied in "My review")
 transcripts/                    full, unredacted AI conversation logs
+transcripts/human-readable/     the same session as a browsable HTML page
 ```
 
 ## AI use
 
-I used Claude Code not Copilot, my usual daily driver at work, and some of the
-transcript shows me riding that gentle learning curve.
+I used Claude Code rather than Copilot, my usual daily driver at work, and
+some of the transcript shows me riding that gentle learning curve.
+
+The complete, unredacted logs are in [`transcripts/`](transcripts/) (see its
+[README](transcripts/README.md)). For easier reading,
+[`transcripts/human-readable/`](transcripts/human-readable/) has the same
+session as one HTML page, with a button to show only my own prompts.
