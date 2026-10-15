@@ -1,26 +1,223 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Text colors are chosen for at least 4.5:1 contrast against
+ * both --background and --surface; --focus has at least 3:1 against every
+ * page surface (WCAG 2.2 AA). On the map, whose tiles stay light in dark
+ * mode, a separate two-tone focus ring is used (see below).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /*
+   * "Fully round" corners. Browsers shrink any corner radius that won't fit
+   * to the largest that does, so a huge value always gives the roundest
+   * shape: a circle on a square box, a pill on a rectangle (unlike 50%,
+   * which turns rectangles into ellipses). Tailwind's rounded-full is the
+   * same trick.
+   */
+  --radius-fully-round: 9999px;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f5f7f3;
+  --surface: #ffffff;
+  --surface-muted: #eef2ec;
+  --foreground: #18211c;
+  --muted: #4f5c55;
+  --border: #d5ddd6;
+  --accent: #1d6a46;
+  --accent-hover: #155537;
+  --accent-soft: #e2f0e7;
+  --on-accent: #ffffff;
+  --focus: #1d4ed8;
+  --marker: #1d6a46;
+  --marker-selected: #b4410f;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0e1411;
+    --surface: #151d19;
+    --surface-muted: #1c2621;
+    --foreground: #e6ece8;
+    --muted: #a2b1a8;
+    --border: #2c3a33;
+    --accent: #6cc996;
+    --accent-hover: #8ad8ad;
+    --accent-soft: #19362a;
+    --on-accent: #0b1f15;
+    --focus: #93c5fd;
+    --marker: #1d6a46;
+    --marker-selected: #b4410f;
+    color-scheme: dark;
   }
 }
 
-body {
-  background: var(--background);
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* One consistent, highly visible focus indicator for every focusable element. */
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Elements that only receive focus from code (the page heading after a
+     navigation, <main> from the skip link) aren't controls; no ring. */
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Leaflet overrides ----------------------------------------------------
+ * leaflet.css loads after this file (with the map's code) and has equal
+ * specificity, so every override is scoped under .park-map to win.
+ */
+
+.park-map .leaflet-container {
+  font: inherit;
+  background: var(--surface-muted);
+  /* Keep map controls and popups below the sticky header and skip link. */
+  z-index: 0;
+}
+
+/* Map tiles are light in both color schemes, so focus on the map uses a
+   dark ring with a white halo, which stands out on any tile. */
+.park-map .park-marker:focus-visible,
+.park-map .leaflet-bar a:focus-visible,
+.park-map .leaflet-popup-close-button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px #fff;
+}
+
+/* The map itself is a Tab stop (arrow keys pan). Its wrapper clips overflow,
+   so draw the ring inside the edge. */
+.park-map .leaflet-container:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: -3px;
+}
+
+.park-map .park-marker {
+  /* Reset Leaflet's default divIcon box. */
+  background: none;
+  border: none;
+  color: var(--marker);
+  /* A real button target: the pin is drawn bottom-centered in a 44x44 hit
+     area, so its tip lands on the icon anchor. */
+  display: grid;
+  place-items: end center;
+  /* A circular focus ring and hit area around the pin. */
+  border-radius: var(--radius-fully-round);
+  cursor: pointer;
+}
+
+.park-map .park-marker svg {
+  width: 30px;
+  height: 40px;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+  /* Grow from the tip so the pin never drifts off its location. */
+  transform-origin: bottom center;
+  transition: transform 120ms ease-out;
+}
+
+.park-map .park-marker:hover svg,
+.park-map .park-marker:focus-visible svg {
+  transform: scale(1.12);
+}
+
+/* The details page's location preview is a picture, not a control. */
+.park-map--static .park-marker {
+  cursor: default;
+}
+
+.park-map .park-marker--selected {
+  color: var(--marker-selected);
+  /* Leaflet sets marker z-index inline, from latitude. */
+  z-index: 1000 !important;
+}
+
+.park-map .park-marker--selected svg {
+  transform: scale(1.2);
+}
+
+.park-map .leaflet-popup-content-wrapper,
+.park-map .leaflet-popup-tip {
+  background: var(--surface);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.park-map .leaflet-popup-content {
+  margin: 14px 36px 14px 16px;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.park-map .leaflet-popup-content p,
+.park-map .leaflet-popup-content h3 {
+  margin: 0;
+}
+
+/* Leaflet colors every map link #0078A8, which is unreadable on the dark
+   popup (about 3.5:1). axe can't measure contrast over map tiles, so this
+   was caught by eye, not by the automated scan. */
+.park-map .leaflet-popup-content a {
+  color: var(--accent);
+}
+
+.park-map .leaflet-popup-content a:hover {
+  color: var(--accent-hover);
+}
+
+.park-map .leaflet-container a.leaflet-popup-close-button {
+  width: 32px;
+  height: 32px;
+  font-size: 22px;
+  line-height: 32px;
+  color: var(--muted);
+}
+
+/* Leaflet's own hover/focus gray is 2.4:1 on the dark popup. */
+.park-map .leaflet-container a.leaflet-popup-close-button:hover,
+.park-map .leaflet-container a.leaflet-popup-close-button:focus {
+  color: var(--foreground);
+}
+
+.park-map .leaflet-container .leaflet-control-attribution {
+  font-size: 0.75rem;
+}
+
+/* Links inside the attribution are told apart from its text by more than
+   color alone (WCAG 1.4.1). */
+.park-map .leaflet-container .leaflet-control-attribution a {
+  text-decoration: underline;
 }
