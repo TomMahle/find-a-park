@@ -2,7 +2,23 @@
 
 A small web app that helps New York City residents find a park: browse a
 list or a map, search, and open a park to see its hours, amenities, photos
-and directions. Built for the Granicus "Find a Park" take-home.
+and directions.
+
+## Background
+
+This is my submission for Granicus's "Find a Park" take-home exercise. The
+full brief is in [docs/brief.md](docs/brief.md): build a small, accessible
+park finder (map, list and details) from a supplied sample dataset, in about
+two hours, with AI tools expected, and submit the code, this README and the
+complete AI conversation logs.
+
+I built it with Claude Code: I set up the project and directed the work,
+Claude Code built the first version overnight (including independent
+AI review passes), and I then reviewed it and asked for changes.
+[docs/overnight-notes.md](docs/overnight-notes.md) is the handoff Claude
+Code wrote at the end of that overnight run; the full transcripts are
+included with the submission. See also [AI use](#ai-use) and
+[Time spent](#time-spent).
 
 | Desktop                                                               | Phone                                                             |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
