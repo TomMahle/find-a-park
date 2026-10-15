@@ -87,10 +87,10 @@ test("markers sit exactly on their park's location", async ({
   await page.goto("/");
   await openMapView(page, testInfo.project.name);
   const box = await page
-    .locator('.park-marker[data-park-id="prospect-park"]')
+    .locator('.park-marker[data-map-marker="prospect-park"]')
     .boundingBox();
   const tip = await page
-    .locator('.park-marker[data-park-id="prospect-park"] svg')
+    .locator('.park-marker[data-map-marker="prospect-park"] svg')
     .boundingBox();
   expect(box && tip).toBeTruthy();
   // Pin is horizontally centered and its tip is at the anchor (22, 42).
@@ -146,7 +146,7 @@ test(
 
     const map = (await page.locator(".leaflet-container").boundingBox())!;
     const pin = (await page
-      .locator('.park-marker[data-park-id="willow-creek-wetlands"]')
+      .locator('.park-marker[data-map-marker="willow-creek-wetlands"]')
       .boundingBox())!;
     const tipX = pin.x + 22;
     const tipY = pin.y + 42;
@@ -185,7 +185,7 @@ test(
 
     const map = (await page.locator(".leaflet-container").boundingBox())!;
     const pin = (await page
-      .locator('.park-marker[data-park-id="willow-creek-wetlands"]')
+      .locator('.park-marker[data-map-marker="willow-creek-wetlands"]')
       .boundingBox())!;
     expect(Math.abs(pin.x + 22 - (map.x + map.width / 2))).toBeLessThan(5);
     expect(Math.abs(pin.y + 42 - (map.y + map.height / 2))).toBeLessThan(5);

@@ -30,6 +30,14 @@ async function expectNoViolations(page: Page) {
 }
 
 /**
+ * Leaflet fades popups in; scanning mid-fade measures text contrast against
+ * a half-transparent popup and fails at random. Wait until it's fully shown.
+ */
+async function waitForOpenPopup(page: Page) {
+  await expect(page.locator(".leaflet-popup")).toHaveCSS("opacity", "1");
+}
+
+/**
  * At the zoomed-out city view on a phone, nearby park markers overlap, which
  * axe reports under WCAG 2.5.8 (Target Size). Each marker is a 44x44 target
  * on its own; overlap only happens when parks are close together. 2.5.8's
@@ -38,9 +46,10 @@ async function expectNoViolations(page: Page) {
  * at least 44px tall. Only this rule, and only for markers, is accepted.
  */
 function isAcceptedMarkerOverlap(ruleId: string, html: string) {
-  // axe truncates attribute values in `html`, but this attribute name is
-  // only ever set on map markers (see enhanceMarkerElement).
-  return ruleId === "target-size" && html.includes(" data-park-id=");
+  // axe truncates attribute values in `html`, so match the attribute name:
+  // data-map-marker is set only on map markers, by enhanceMarkerElement in
+  // park-map.tsx (list cards use data-park-card).
+  return ruleId === "target-size" && html.includes(" data-map-marker=");
 }
 
 for (const colorScheme of ["light", "dark"] as const) {
@@ -57,11 +66,14 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.goto("/");
       await openMapView(page, testInfo.project.name);
       await expect(page.locator(".park-marker")).toHaveCount(12);
-      await page.locator('.park-marker[data-park-id="prospect-park"]').focus();
+      await page
+        .locator('.park-marker[data-map-marker="prospect-park"]')
+        .focus();
       await page.keyboard.press("Enter");
       await expect(
         page.getByRole("link", { name: /View park details/ }),
       ).toBeVisible();
+      await waitForOpenPopup(page);
       await expectNoViolations(page);
     });
 
@@ -126,6 +138,7 @@ test.describe("failure and selection states", () => {
     await expect(
       page.getByText("The map background couldn’t load."),
     ).toBeVisible();
+    await waitForOpenPopup(page);
     // Scan the map with its notice, then (on phones) the list, whose card for
     // the selected park is highlighted.
     await expectNoViolations(page);

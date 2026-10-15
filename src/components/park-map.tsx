@@ -172,8 +172,11 @@ function ParkMarker({
  */
 function enhanceMarkerElement(marker: L.Marker, parkId: string, label: string) {
   const element = marker.getElement();
-  if (!element || element.dataset.parkId === parkId) return;
-  element.dataset.parkId = parkId;
+  if (!element || element.dataset.mapMarker === parkId) return;
+  // Marks the element as a map marker (and which park). Only markers carry
+  // this: findMarker relies on it, and so does the accessibility test's
+  // target-size exception for overlapping markers.
+  element.dataset.mapMarker = parkId;
   element.setAttribute("aria-label", `${label}. Show park summary.`);
   element.addEventListener("keydown", (event) => {
     if (event.key === " ") {
@@ -304,7 +307,7 @@ function findMarker(map: L.Map, parkId: string): L.Marker | null {
   map.eachLayer((layer) => {
     if (
       layer instanceof L.Marker &&
-      layer.getElement()?.dataset.parkId === parkId
+      layer.getElement()?.dataset.mapMarker === parkId
     ) {
       found = layer;
     }
