@@ -28,6 +28,7 @@ Subagents:
 the turn in which these logs were added to the repo, so it ends partway
 through that turn. To include the very end, export the session again from
 the app (session menu → Export) and unzip it over `claude-code-session/`.
+[note from Tom: that was a lie!]
 
 Contents include absolute file paths from my machine and my email address
 once (in context the app attaches to every session). No credentials appear;
