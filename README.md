@@ -4,6 +4,12 @@ A small web app that helps New York City residents find a park: browse a
 list or a map, search, and open a park to see its hours, amenities, photos
 and directions.
 
+> **After submission:** this project became the starting point for my
+> portfolio site, [TomMahle/tommahle.com](https://github.com/TomMahle/tommahle.com).
+> That repo began as a copy of this one, history included, and Find a Park
+> runs there at `/find-a-park`, with later changes (such as self-hosted map
+> tiles and photos). This repo stays as submitted, apart from README notes.
+
 ## Background
 
 This is my submission for Granicus's "Find a Park" take-home exercise. The
